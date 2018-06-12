@@ -5,6 +5,7 @@
 #ifndef DEEP_LEARNING_FROM_SCRATCH_NETWORK_HPP
 #define DEEP_LEARNING_FROM_SCRATCH_NETWORK_HPP
 
+#include <memory>
 #include "../primitive/primitive.hpp"
 
 using ndarray = primitive::ndarray;

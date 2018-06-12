@@ -2,13 +2,16 @@ version: 2
 jobs:
   build:
     docker:
-      - image: .
+      - image: satellitex/alpine-cmake-git:latest
     steps:
       - checkout
       - run: echo "A first hello"
       - run:
           name: cmake
-          command: cmake .
+          command: |
+            mkdir build
+            cd build &&
+            cmake ..
       - run:
           name: make
           command: make

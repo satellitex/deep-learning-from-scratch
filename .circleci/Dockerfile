@@ -1,8 +1,5 @@
-ROM ubuntu:16.04
+FROM frebib/alpine-cmake:3.7
 
-RUN apt-get update; \
-    apt-get install -y cmake
+RUN apk --no-cache add git
 
-#Install iroha
-
-WORKDIR /opt/deep-learning-from-scratch
+WORKDIR /opt
