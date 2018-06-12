@@ -9,4 +9,4 @@ set_directory_properties(PROPERTIES
         )
 
 find_package(gtest)
-find_package(eigen)
+find_package(opencv)
