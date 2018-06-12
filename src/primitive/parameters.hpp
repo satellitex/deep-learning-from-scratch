@@ -6,6 +6,7 @@
 #define DEEP_LEARNING_FROM_SCRATCH_PARAMETERS_HPP
 
 #include <unordered_map>
+#include <memory>
 #include "primitive.hpp"
 
 namespace primitive {

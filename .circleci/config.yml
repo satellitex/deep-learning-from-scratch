@@ -1,0 +1,23 @@
+version: 2
+jobs:
+  build:
+    working_directory: /opt
+    docker:
+      - image: satellitex/alpine-cmake-git:latest
+    steps:
+      - checkout
+      - run: echo "A first hello"
+      - run:
+          name: cmake
+          command: |
+            mkdir build
+            cd build &&
+            cmake ..
+      - run:
+          name: make
+          command: |
+            cd /opt/build && make
+      - run:
+          name: test
+          command: |
+            cd /opt/build && make test
