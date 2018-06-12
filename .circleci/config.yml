@@ -1,0 +1,17 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: .
+    steps:
+      - checkout
+      - run: echo "A first hello"
+      - run:
+          name: cmake
+          command: cmake .
+      - run:
+          name: make
+          command: make
+      - run:
+          name: test
+          command: make test
