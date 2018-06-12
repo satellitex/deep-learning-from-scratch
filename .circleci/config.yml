@@ -1,6 +1,7 @@
 version: 2
 jobs:
   build:
+    working_directory: /opt
     docker:
       - image: satellitex/alpine-cmake-git:latest
     steps:
@@ -14,7 +15,9 @@ jobs:
             cmake ..
       - run:
           name: make
-          command: make
+          command: |
+            cd /opt/build && make
       - run:
           name: test
-          command: make test
+          command: |
+            cd /opt/build && make test
