@@ -9,13 +9,13 @@
 #include <memory>
 #include "primitive.hpp"
 
-namespace primitive {
+namespace dpl {
   template <typename K>
   class Parameters {
     std::shared_ptr<ndarray> operator[](const K &key) { return mp[key]; }
 
     std::unordered_map<K, std::shared_ptr<ndarray>> mp;
   };
-}  // namespace primitive
+}  // namespace dpl
 
 #endif  // DEEP_LEARNING_FROM_SCRATCH_PARAMETERS_HPP

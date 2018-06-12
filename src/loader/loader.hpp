@@ -8,9 +8,9 @@
 #include <string>
 #include "../primitive/ndarray.hpp"
 
-using ndarray = primitive::ndarray;
+using ndarray = dpl::ndarray;
 
-namespace loader {
+namespace dpl {
   class Loader {
     virtual void download(std::string filenname, std::shared_ptr<ndarray> array) = 0;
     virtual void load(std::string filename, std::shared_ptr<ndarray> array) = 0;

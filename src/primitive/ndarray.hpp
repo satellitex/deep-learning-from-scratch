@@ -5,8 +5,12 @@
 #ifndef DEEP_LEARNING_FROM_SCRATCH_NDARRAY_HPP
 #define DEEP_LEARNING_FROM_SCRATCH_NDARRAY_HPP
 
-namespace primitive {
-  class ndarray {};
-}  // namespace primitive
+#include <Eigen/Core>
+
+namespace dpl {
+  class ndarray {
+
+  };
+}  // namespace dpl
 
 #endif  // DEEP_LEARNING_FROM_SCRATCH_NDARRAY_HPP
