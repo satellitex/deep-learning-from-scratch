@@ -10,11 +10,11 @@
 #include "primitive.hpp"
 
 namespace dpl {
-  template <typename K>
+  template <typename K, typename V>
   class Parameters {
-    std::shared_ptr<ndarray> operator[](const K &key) { return mp[key]; }
+    std::shared_ptr<V> operator[](const K &key) { return mp[key]; }
 
-    std::unordered_map<K, std::shared_ptr<ndarray>> mp;
+    std::unordered_map<K, std::shared_ptr<V>> mp;
   };
 }  // namespace dpl
 

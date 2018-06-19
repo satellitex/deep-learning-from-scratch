@@ -17,32 +17,27 @@ template <typename T, int... Args>
 class ndarray;
 
 template <typename T, int First>
-class ndarray<T, First> {
+class ndarray<T, First> : public std::array<T, First> {
  public:
   ndarray() : initialize_ps_(0) {}
-  ndarray(const std::array<T, First>& cp) {
+  ndarray(const std::array<T, First>& cp) : std::array<T, First>(cp) {
     ndarray();
-    array_ = cp;
   }
-  T& at(int i) { return array_[i]; }
-  const T& at(int i) const { return array_[i]; }
 
   ndarray<T, First>& at() { return *this; }
   const ndarray<T, First>& at() const { return *this; }
 
-  ndarray<T, First>& fill(const T& v) {
-    array_.fill(v);
-    return *this;
-  };
+  T& at(int i) { return std::array<T, First>::at(i); }
+  const T& at(int i) const { return std::array<T, First>::at(i); }
 
   ndarray<T, First>& operator<<(const T& v) {
-    array_.at(0) = v;
+    at(0) = v;
     initialize_ps_ = 1;
     return *this;
   };
   ndarray<T, First>& operator,(const T& v) {
     if (initialize_ps_ >= size()) throw initialize_ndarray_error();
-    array_.at(initialize_ps_) = v;
+    at(initialize_ps_) = v;
     initialize_ps_++;
     return *this;
   };
@@ -50,7 +45,6 @@ class ndarray<T, First> {
   constexpr size_t size() const { return First; }
 
  private:
-  std::array<T, First> array_;
   size_t initialize_ps_;
 };
 
@@ -66,7 +60,8 @@ ostream& operator<<(ostream& os, const ndarray<T, First>& a) {
 }
 
 template <typename T, int First, int Second, int... Args>
-class ndarray<T, First, Second, Args...> {
+class ndarray<T, First, Second, Args...>
+    : public std::array<ndarray<T, Second, Args...>, First> {
  public:
   ndarray() : initialize_ps_(0) {}
 
@@ -76,35 +71,34 @@ class ndarray<T, First, Second, Args...> {
 
   template <typename... Int>
   auto& at(int i, Int... args) {
-    return m_.at(i).at(args...);
+    return std::array<ndarray<T, Second, Args...>, First>::at(i).at(args...);
   }
 
   template <typename... Int>
   const auto& at(int i, Int... args) const {
-    return m_.at(i).at(args...);
+    return std::array<ndarray<T, Second, Args...>, First>::at(i).at(args...);
   }
 
   ndarray<T, First, Second, Args...>& fill(const T& v) {
-    for (auto& m : m_) m.fill(v);
+    for (int i = 0; i < First; i++) at(i).fill(v);
     return *this;
   };
 
   ndarray<T, First, Second, Args...>& operator<<(const T& v) {
-    m_.at(0) << v;
+    at(0) << v;
     initialize_ps_ = 1;
     return *this;
   }
   ndarray<T, First, Second, Args...>& operator,(const T& v) {
     if (initialize_ps_ >= size()) throw initialize_ndarray_error();
-    m_.at(initialize_ps_ / m_.at(0).size()), v;
+    at(initialize_ps_ / at(0).size()), v;
     initialize_ps_++;
     return *this;
   }
 
-  constexpr size_t size() const { return First * m_.at(0).size(); }
+  constexpr size_t size() const { return First * at(0).size(); }
 
  private:
-  std::array<ndarray<T, Second, Args...>, First> m_;
   size_t initialize_ps_;
 };
 
@@ -176,4 +170,21 @@ int main() {
   std::cout << x2 << std::endl;
 
   std::cout << xres << std::endl;
+
+  ndarray<float, 2, 2> y1;
+  y1 << 1, 2, 3, 4;
+  ndarray<float, 2, 2> y2;
+  y2 << 5, 6, 7, 8;
+  std::swap(y1, y2);
+  std::cout << y1 << std::endl;
+  std::cout << y2 << std::endl;
+
+  ndarray<float,2,3> z1; z1 << 1,2,3,4,5,6;
+  ndarray<float,2,3> z2; z2 << 1,2,3,4,5,6;
+  std::cout << (z1 == z2) << std::endl;
+  std::cout << (z1 != z2) << std::endl;
+  ndarray<float,2,3> z3; z3 << 2,1,1,1,1,1;
+  std::cout << (z1 < z3) << std::endl;
+  std::cout << (z1 >= z3) << std::endl;
+  std::cout << (z1 >= z2) << std::endl;
 }
