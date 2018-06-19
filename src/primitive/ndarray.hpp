@@ -57,6 +57,7 @@ namespace dpl {
       for (int i = 0; i < size(); i++) ret.linerAt(i) = linerAt(i);
       return std::move(ret);
     };
+
     T& linerAt(int index) { return at(index); }
     const T& linerAt(int index) const { return at(index); }
 
@@ -121,6 +122,105 @@ namespace dpl {
       ndarray<T, NFirst, NArgs...> ret;
       for (int i = 0; i < size(); i++) ret.linerAt(i) = linerAt(i);
       return std::move(ret);
+    };
+
+    // Get<I, Ints...>
+    // I : index
+    // Ints... : Args...
+    // Get<I, Ints...>::value = Args[I]
+    template <int I, int... Ints>
+    class Get;
+
+    template <int I, int F, int... Ints>
+    class Get<I, F, Ints...> {
+     public:
+      enum { value = Get<I - 1, Ints...>::value };
+    };
+
+    template <int F, int... Ints>
+    class Get<0, F, Ints...> {
+     public:
+      enum { value = F };
+    };
+    //================================================================
+
+    // GetFact
+    // I : index
+    // Ints... : Args...
+    // GetFact<I, Ints...>::value = Ints[0] * Ints[1] * ... Ints[I]
+    template <int I, int... Ints>
+    class GetFact;
+
+    template <int I, int F, int... Ints>
+    class GetFact<I, F, Ints...> {
+     public:
+      enum { value = F * GetFact<I - 1, Ints...>::value };
+    };
+
+    template <int F, int... Ints>
+    class GetFact<0, F, Ints...> {
+     public:
+      enum { value = F };
+    };
+    //=============================================================
+
+    // DimExpand<D, Dims...>
+    // D : sizeof Dimentions
+    // Dims... : ndarray<T, Dims...>
+    // DimExpand<D, Dims...>::value = ndarray<T, D, Dims...>
+    template <typename Arr, int D>
+    class DimExpand;
+
+    template <int D, int... Dims>
+    class DimExpand<ndarray<T, Dims...>, D> {
+     public:
+      using type = ndarray<T, D, Dims...>;
+    };
+    //==============================================================
+
+    // GetTranposedNdArray<int... Ints>
+    // Ints : Args[ Ints[i] ]...
+    // type = ndarray< T, Args[Ints[i]...] >
+    template <int... Ints>
+    class GetTransposedArray;
+
+    template <int F, int S, int... Ints>
+    class GetTransposedArray<F, S, Ints...> {
+     public:
+      using type =
+          typename DimExpand<typename GetTransposedArray<S, Ints...>::type,
+                             Get<F, First, Second, Args...>::value>::type;
+    };
+    template <int F>
+    class GetTransposedArray<F> {
+     public:
+      using type = ndarray<T, Get<F, First, Second, Args...>::value>;
+    };
+    //=============================================================
+
+    template <int... NArgs>
+    void make_transpose_(T& v, int id) const {
+      static_assert(sizeof...(NArgs) == 0);
+      v = linerAt(id);
+    }
+
+    template <int F, int... NArgs>
+    void make_transpose_(
+        typename GetTransposedArray<F, NArgs...>::type& transpose_array,
+        int id) const {
+      for (int i = 0; i < Get<F, First, Second, Args...>::value;
+           i++, id += size() / GetFact<F, First, Second, Args...>::value)
+        make_transpose_<NArgs...>(transpose_array.at(i), id);
+    }
+
+    template <int... NArgs>
+    auto transpose() const {
+      static_assert(sizeof...(NArgs) == sizeof...(Args) + 2,
+                    "Transpose don't match number of arguments.");
+
+      typename GetTransposedArray<NArgs...>::type ret;
+      make_transpose_<NArgs...>(ret, 0);
+      return ret;
     };
 
     T& linerAt(int index) {
