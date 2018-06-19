@@ -138,3 +138,42 @@ TEST(ND_ARRAY_TEST, EQ_TEST) {
   ASSERT_FALSE(z1 >= z3);
   ASSERT_TRUE(z1 >= z2);
 }
+
+TEST(ND_ARRAY_TEST, SHAPE_TEST) {
+  ndarray<float, 2, 2> z1;
+  ASSERT_EQ(std::make_tuple(2, 2), z1.shape());
+
+  ndarray<float, 10, 9, 8, 7, 2> z2;
+  ASSERT_EQ(std::make_tuple(10, 9, 8, 7, 2), z2.shape());
+
+  ndarray<float, 3> z3;
+  ASSERT_EQ(std::make_tuple(3), z3.shape());
+}
+
+TEST(ND_ARRAY_TEST, RESHAPE_TEST_1_TO_3x4) {
+  ndarray<float, 12> x;
+  x << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12;
+  auto nx = x.reshape<3, 4>();
+  for (int i = 0, cnt = 0; i < 3; i++)
+    for (int j = 0; j < 4; j++, cnt++) ASSERT_FLOAT_EQ(x.at(cnt), nx.at(i, j));
+}
+
+TEST(ND_ARRAY_TEST, RESHAPE_TEST_3x2x2_TO_12) {
+  ndarray<float, 3, 2, 2> x;
+  x << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12;
+  auto nx = x.reshape<12>();
+  for (int i = 0, cnt = 0; i < 3; i++)
+    for (int j = 0; j < 2; j++)
+      for (int k = 0; k < 2; k++, cnt++)
+        ASSERT_FLOAT_EQ(x.at(i, j, k), nx.at(cnt));
+}
+
+TEST(ND_ARRAY_TEST, RESHAPE_TEST_3x2x2_TO_4x3) {
+  ndarray<float, 3, 2, 2> x;
+  x << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12;
+  auto nx = x.reshape<4, 3>();
+  for (int i = 0, cnt = 0; i < 3; i++)
+    for (int j = 0; j < 2; j++)
+      for (int k = 0; k < 2; k++, cnt++)
+        ASSERT_FLOAT_EQ(x.at(i, j, k), nx.at(cnt / 3, cnt % 3));
+}

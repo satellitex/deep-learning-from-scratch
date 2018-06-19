@@ -50,6 +50,15 @@ namespace dpl {
     };
 
     constexpr size_t size() const { return First; }
+    constexpr auto shape() const { return std::make_tuple(First); }
+    template <int NFirst, int... NArgs>
+    ndarray<T, NFirst, NArgs...> reshape() const {
+      ndarray<T, NFirst, NArgs...> ret;
+      for (int i = 0; i < size(); i++) ret.linerAt(i) = linerAt(i);
+      return std::move(ret);
+    };
+    T& linerAt(int index) { return at(index); }
+    const T& linerAt(int index) const { return at(index); }
 
    private:
     size_t initialize_ps_;
@@ -89,7 +98,7 @@ namespace dpl {
     ndarray<T, First, Second, Args...>& fill(const T& v) {
       for (int i = 0; i < First; i++) at(i).fill(v);
       return *this;
-    };
+    }
 
     ndarray<T, First, Second, Args...>& operator<<(const T& v) {
       at(0) << v;
@@ -104,6 +113,22 @@ namespace dpl {
     }
 
     constexpr size_t size() const { return First * at(0).size(); }
+    constexpr auto shape() const {
+      return std::make_tuple(First, Second, Args...);
+    }
+    template <int NFirst, int... NArgs>
+    ndarray<T, NFirst, NArgs...> reshape() const {
+      ndarray<T, NFirst, NArgs...> ret;
+      for (int i = 0; i < size(); i++) ret.linerAt(i) = linerAt(i);
+      return std::move(ret);
+    };
+
+    T& linerAt(int index) {
+      return at(index / at(0).size()).linerAt(index % at(0).size());
+    }
+    const T& linerAt(int index) const {
+      return at(index / at(0).size()).linerAt(index % at(0).size());
+    }
 
    private:
     size_t initialize_ps_;
@@ -111,7 +136,7 @@ namespace dpl {
 
   template <typename T, int First, int Second, int... Args>
   std::ostream& operator<<(std::ostream& os,
-                      const ndarray<T, First, Second, Args...>& a) {
+                           const ndarray<T, First, Second, Args...>& a) {
     os << "[ ";
     for (int i = 0; i < First; i++) {
       if (i) os << " ,";
@@ -130,7 +155,8 @@ namespace dpl {
       for (int j = 0; j < Second; j++)
         for (int k = 0; k < Third; k++) ret.at(i, k) += a.at(i, j) * b.at(j, k);
     return std::move(ret);
-  };
+  }
+
 }  // namespace dpl
 
 #endif  // DEEP_LEARNING_FROM_SCRATCH_NDARRAY_HPP
