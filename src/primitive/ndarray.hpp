@@ -323,7 +323,8 @@ namespace dpl {
   };  // namespace dpl
 
   template <typename T, int... Ints>
-  ndarray<T,Ints...> operator+(const ndarray<T, Ints...>& a, const ndarray<T, Ints...>& b) {
+  ndarray<T, Ints...> operator+(const ndarray<T, Ints...>& a,
+                                const ndarray<T, Ints...>& b) {
     ndarray<T, Ints...> ret;
     for (int i = 0; i < ret.size(); i++)
       ret.linerAt(i) = a.linerAt(i) + b.linerAt(i);
@@ -331,11 +332,69 @@ namespace dpl {
   }
 
   template <typename T, int... Ints>
-  ndarray<T,Ints...> operator+(const ndarray<T, Ints...>& a, const T& v) {
+  ndarray<T, Ints...> operator+(const ndarray<T, Ints...>& a, const T& v) {
     ndarray<T, Ints...> ret;
     for (int i = 0; i < ret.size(); i++) ret.linerAt(i) = a.linerAt(i) + v;
     return std::move(ret);
   }
+
+  template <typename T, int... Ints>
+  ndarray<T, Ints...> operator*(const ndarray<T, Ints...>& a,
+                                const ndarray<T, Ints...>& b) {
+    ndarray<T, Ints...> ret;
+    for (int i = 0; i < ret.size(); i++)
+      ret.linerAt(i) = a.linerAt(i) * b.linerAt(i);
+    return std::move(ret);
+  }
+
+  template <typename T, int... Ints>
+  ndarray<T, Ints...> operator*(const ndarray<T, Ints...>& a, const T& v) {
+    ndarray<T, Ints...> ret;
+    for (int i = 0; i < ret.size(); i++) ret.linerAt(i) = a.linerAt(i) * v;
+    return std::move(ret);
+  }
+
+  template <typename T, int... Ints>
+  ndarray<T, Ints...> operator-(const ndarray<T, Ints...>& a,
+                                const ndarray<T, Ints...>& b) {
+    ndarray<T, Ints...> ret;
+    for (int i = 0; i < ret.size(); i++)
+      ret.linerAt(i) = a.linerAt(i) - b.linerAt(i);
+    return std::move(ret);
+  }
+
+  template <typename T, int... Ints>
+  ndarray<T, Ints...> operator-(const ndarray<T, Ints...>& a, const T& v) {
+    ndarray<T, Ints...> ret;
+    for (int i = 0; i < ret.size(); i++) ret.linerAt(i) = a.linerAt(i) - v;
+    return std::move(ret);
+  }
+
+  template <typename T, int... Ints>
+  ndarray<T, Ints...> operator/(const ndarray<T, Ints...>& a,
+                                const ndarray<T, Ints...>& b) {
+    ndarray<T, Ints...> ret;
+    for (int i = 0; i < ret.size(); i++)
+      ret.linerAt(i) = a.linerAt(i) / b.linerAt(i);
+    return std::move(ret);
+  }
+
+  template <typename T, int... Ints>
+  ndarray<T, Ints...> operator/(const ndarray<T, Ints...>& a, const T& v) {
+    ndarray<T, Ints...> ret;
+    for (int i = 0; i < ret.size(); i++) ret.linerAt(i) = a.linerAt(i) / v;
+    return std::move(ret);
+  }
+
+  template <typename T, int... Ints>
+  bool nearly(const ndarray<T, Ints...>& a, const ndarray<T, Ints...>& b,
+              const T& eps) {
+    for (int i = 0; i < a.size(); i++)
+      if (!(a.linerAt(i) - eps < b.linerAt(i) &&
+            b.linerAt(i) < a.linerAt(i) + eps))
+        return false;
+    return true;
+  };
 
   template <typename T, int First, int Second, int... Args>
   std::ostream& operator<<(std::ostream& os,

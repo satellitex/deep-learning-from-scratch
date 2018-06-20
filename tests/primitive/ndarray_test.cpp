@@ -403,3 +403,165 @@ TEST(ND_ARRAY_TEST, PLUS_OPERSTOR_11_V) {
   }
   ASSERT_EQ(exp, x1 + v);
 }
+
+TEST(ND_ARRAY_TEST, MULT_OPERSTOR_3x4x5) {
+  ndarray<float, 3, 4, 5> x1;
+  ndarray<float, 3, 4, 5> y1;
+  ndarray<float, 3, 4, 5> exp;
+
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 4; j++)
+      for (int k = 0; k < 5; k++) {
+        x1.at(i, j, k) = (i * 7 + j * 117 + k * 41) % 37;
+        y1.at(i, j, k) = (i * 11 + j * 191 + k * 71) % 37;
+        exp.at(i, j, k) = x1.at(i, j, k) * y1.at(i, j, k);
+      }
+  ASSERT_EQ(exp, x1 * y1);
+}
+
+TEST(ND_ARRAY_TEST, MULT_OPERSTOR_3x4x5_V) {
+  ndarray<float, 3, 4, 5> x1;
+  float v = 100.0;
+  ndarray<float, 3, 4, 5> exp;
+
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 4; j++)
+      for (int k = 0; k < 5; k++) {
+        x1.at(i, j, k) = (i * 7 + j * 117 + k * 41) % 37;
+        exp.at(i, j, k) = x1.at(i, j, k) * v;
+      }
+  ASSERT_EQ(exp, x1 * v);
+}
+
+TEST(ND_ARRAY_TEST, MULT_OPERSTOR_11) {
+  ndarray<float, 11> x1;
+  ndarray<float, 11> y1;
+  ndarray<float, 11> exp;
+
+  for (int i = 0; i < 11; i++) {
+    x1.at(i) = i;
+    y1.at(i) = i * 2;
+    exp.at(i) = x1.at(i) * y1.at(i);
+  }
+  ASSERT_EQ(exp, x1 * y1);
+}
+
+TEST(ND_ARRAY_TEST, MULT_OPERSTOR_11_V) {
+  ndarray<float, 11> x1;
+  float v = 100.0;
+  ndarray<float, 11> exp;
+
+  for (int i = 0; i < 11; i++) {
+    x1.at(i) = i;
+    exp.at(i) = x1.at(i) * v;
+  }
+  ASSERT_EQ(exp, x1 * v);
+}
+
+TEST(ND_ARRAY_TEST, MINUS_OPERSTOR_3x4x5) {
+  ndarray<float, 3, 4, 5> x1;
+  ndarray<float, 3, 4, 5> y1;
+  ndarray<float, 3, 4, 5> exp;
+
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 4; j++)
+      for (int k = 0; k < 5; k++) {
+        x1.at(i, j, k) = (i * 7 + j * 117 + k * 41) % 37;
+        y1.at(i, j, k) = (i * 11 + j * 191 + k * 71) % 37;
+        exp.at(i, j, k) = x1.at(i, j, k) - y1.at(i, j, k);
+      }
+  ASSERT_EQ(exp, x1 - y1);
+}
+
+TEST(ND_ARRAY_TEST, MINUS_OPERSTOR_3x4x5_V) {
+  ndarray<float, 3, 4, 5> x1;
+  float v = 100.0;
+  ndarray<float, 3, 4, 5> exp;
+
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 4; j++)
+      for (int k = 0; k < 5; k++) {
+        x1.at(i, j, k) = (i * 7 + j * 117 + k * 41) % 37;
+        exp.at(i, j, k) = x1.at(i, j, k) - v;
+      }
+  ASSERT_EQ(exp, x1 - v);
+}
+
+TEST(ND_ARRAY_TEST, MINUS_OPERSTOR_11) {
+  ndarray<float, 11> x1;
+  ndarray<float, 11> y1;
+  ndarray<float, 11> exp;
+
+  for (int i = 0; i < 11; i++) {
+    x1.at(i) = i;
+    y1.at(i) = i * 2;
+    exp.at(i) = x1.at(i) - y1.at(i);
+  }
+  ASSERT_EQ(exp, x1 - y1);
+}
+
+TEST(ND_ARRAY_TEST, MINUS_OPERSTOR_11_V) {
+  ndarray<float, 11> x1;
+  float v = 100.0;
+  ndarray<float, 11> exp;
+
+  for (int i = 0; i < 11; i++) {
+    x1.at(i) = i;
+    exp.at(i) = x1.at(i) - v;
+  }
+  ASSERT_EQ(exp, x1 - v);
+}
+
+TEST(ND_ARRAY_TEST, DIV_OPERSTOR_3x4x5) {
+  ndarray<float, 3, 4, 5> x1;
+  ndarray<float, 3, 4, 5> y1;
+  ndarray<float, 3, 4, 5> exp;
+
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 4; j++)
+      for (int k = 0; k < 5; k++) {
+        x1.at(i, j, k) = (i * 7 + j * 117 + k * 41) % 37 + 1;
+        y1.at(i, j, k) = (i * 11 + j * 191 + k * 71) % 37 + 1;
+        exp.at(i, j, k) = x1.at(i, j, k) / y1.at(i, j, k);
+      }
+  ASSERT_EQ(exp, x1 / y1);
+}
+
+TEST(ND_ARRAY_TEST, DIV_OPERSTOR_3x4x5_V) {
+  ndarray<float, 3, 4, 5> x1;
+  float v = 100.0;
+  ndarray<float, 3, 4, 5> exp;
+
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 4; j++)
+      for (int k = 0; k < 5; k++) {
+        x1.at(i, j, k) = (i * 7 + j * 117 + k * 41) % 37 + 1;
+        exp.at(i, j, k) = x1.at(i, j, k) / v;
+      }
+  ASSERT_EQ(exp, x1 / v);
+}
+
+TEST(ND_ARRAY_TEST, DIV_OPERSTOR_11) {
+  ndarray<float, 11> x1;
+  ndarray<float, 11> y1;
+  ndarray<float, 11> exp;
+
+  for (int i = 0; i < 11; i++) {
+    x1.at(i) = i + 1;
+    y1.at(i) = (i + 1) * 2;
+    exp.at(i) = x1.at(i) / y1.at(i);
+  }
+  ASSERT_EQ(exp, x1 / y1);
+}
+
+TEST(ND_ARRAY_TEST, DIV_OPERSTOR_11_V) {
+  ndarray<float, 11> x1;
+  float v = 100.0;
+  ndarray<float, 11> exp;
+
+  for (int i = 0; i < 11; i++) {
+    x1.at(i) = (i + 1);
+    exp.at(i) = x1.at(i) / v;
+  }
+  ASSERT_EQ(exp, x1 / v);
+}
