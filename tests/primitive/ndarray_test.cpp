@@ -349,3 +349,32 @@ TEST(ND_ARRAY_TEST, MAXIMUM_5x4x3) {
       }
   ASSERT_EQ(exp, maximum(x1, y1));
 }
+
+TEST(ND_ARRAY_TEST, PLUS_OPERSTOR_3x4x5) {
+  ndarray<float, 3, 4, 5> x1;
+  ndarray<float, 3, 4, 5> y1;
+  ndarray<float, 3, 4, 5> exp;
+
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 4; j++)
+      for (int k = 0; k < 5; k++) {
+        x1.at(i, j, k) = (i * 7 + j * 117 + k * 41) % 37;
+        y1.at(i, j, k) = (i * 11 + j * 191 + k * 71) % 37;
+        exp.at(i, j, k) = x1.at(i, j, k) + y1.at(i, j, k);
+      }
+  ASSERT_EQ(exp, x1 + y1);
+}
+
+TEST(ND_ARRAY_TEST, PLUS_OPERSTOR_3x4x5_V) {
+  ndarray<float, 3, 4, 5> x1;
+  float v = 100.0;
+  ndarray<float, 3, 4, 5> exp;
+
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 4; j++)
+      for (int k = 0; k < 5; k++) {
+        x1.at(i, j, k) = (i * 7 + j * 117 + k * 41) % 37;
+        exp.at(i, j, k) = x1.at(i, j, k) + v;
+      }
+  ASSERT_EQ(exp, x1 + v);
+}

@@ -311,12 +311,26 @@ namespace dpl {
       return std::move(ret);
     }
 
-
     T& linerAt(int index) {
       return at(index / at(0).size()).linerAt(index % at(0).size());
     }
     const T& linerAt(int index) const {
       return at(index / at(0).size()).linerAt(index % at(0).size());
+    }
+
+    ndarray<T, First, Second, Args...> operator+(
+        const ndarray<T, First, Second, Args...>& o) {
+      ndarray<T, First, Second, Args...> ret;
+      for (int i = 0; i < size(); i++)
+        ret.linerAt(i) = linerAt(i) + o.linerAt(i);
+      return std::move(ret);
+    }
+
+    ndarray<T, First, Second, Args...> operator+(const T& v) {
+      ndarray<T,First,Second,Args...> ret;
+      for(int i=0;i<size();i++)
+        ret.linerAt(i) = linerAt(i) + v;
+      return std::move(ret);
     }
 
    private:
