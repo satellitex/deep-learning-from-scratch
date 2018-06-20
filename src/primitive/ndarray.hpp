@@ -318,24 +318,24 @@ namespace dpl {
       return at(index / at(0).size()).linerAt(index % at(0).size());
     }
 
-    ndarray<T, First, Second, Args...> operator+(
-        const ndarray<T, First, Second, Args...>& o) {
-      ndarray<T, First, Second, Args...> ret;
-      for (int i = 0; i < size(); i++)
-        ret.linerAt(i) = linerAt(i) + o.linerAt(i);
-      return std::move(ret);
-    }
-
-    ndarray<T, First, Second, Args...> operator+(const T& v) {
-      ndarray<T,First,Second,Args...> ret;
-      for(int i=0;i<size();i++)
-        ret.linerAt(i) = linerAt(i) + v;
-      return std::move(ret);
-    }
-
    private:
     size_t initialize_ps_;
   };  // namespace dpl
+
+  template <typename T, int... Ints>
+  ndarray<T,Ints...> operator+(const ndarray<T, Ints...>& a, const ndarray<T, Ints...>& b) {
+    ndarray<T, Ints...> ret;
+    for (int i = 0; i < ret.size(); i++)
+      ret.linerAt(i) = a.linerAt(i) + b.linerAt(i);
+    return std::move(ret);
+  }
+
+  template <typename T, int... Ints>
+  ndarray<T,Ints...> operator+(const ndarray<T, Ints...>& a, const T& v) {
+    ndarray<T, Ints...> ret;
+    for (int i = 0; i < ret.size(); i++) ret.linerAt(i) = a.linerAt(i) + v;
+    return std::move(ret);
+  }
 
   template <typename T, int First, int Second, int... Args>
   std::ostream& operator<<(std::ostream& os,
