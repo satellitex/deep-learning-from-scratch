@@ -215,6 +215,35 @@ TEST(ND_ARRAY_TEST, TRANSPOSE_5x4x3x2x3) {
             ASSERT_FLOAT_EQ(x.at(i, j, k, n, m), tx2.at(n, m, i, k, j));
 }
 
+TEST(ND_ARRAY_TEST, REVERSE_TRANSPOSE_3x2x2) {
+  ndarray<float, 3, 2, 2> x;
+  x << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12;
+  auto nx = x.T();
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 2; j++)
+      for (int k = 0; k < 2; k++)
+        ASSERT_FLOAT_EQ(x.at(i, j, k), nx.at(k, j, i));
+}
+
+TEST(ND_ARRAY_TEST, REVERSE_TRANSPOSE_5x4x3x2x3) {
+  ndarray<float, 5, 4, 3, 2, 6> x;
+
+  for (int i = 0; i < 5; i++)
+    for (int j = 0; j < 4; j++)
+      for (int k = 0; k < 3; k++)
+        for (int n = 0; n < 2; n++)
+          for (int m = 0; m < 6; m++)
+            x.at(i, j, k, n, m) = i * 10000 + j * 1000 + k * 100 + n * 10 + m;
+
+  auto tx = x.T();
+  for (int i = 0; i < 5; i++)
+    for (int j = 0; j < 4; j++)
+      for (int k = 0; k < 3; k++)
+        for (int n = 0; n < 2; n++)
+          for (int m = 0; m < 6; m++)
+            ASSERT_FLOAT_EQ(x.at(i, j, k, n, m), tx.at(m, n, k, j, i));
+}
+
 TEST(ND_ARRAY_TEST, ARGMAX_3x3x3) {
   ndarray<float, 3, 4, 5> x;
   for (int i = 0; i < 3; i++)
