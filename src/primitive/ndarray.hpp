@@ -232,33 +232,33 @@ namespace dpl {
     // I : delete I-th dimension
     // Ints : Args[ Ints[i] ]...
     // type = ndarray< T, Args[0],...Args[I-1],Args[I+1],...,Args[N-1] >
-    template <int I, int... Ints>
+    template <typename U, int I, int... Ints>
     class GetDecreaseDimArray;
 
-    template <int I, int F, int... Ints>
-    class GetDecreaseDimArray<I, F, Ints...> {
+    template <typename U, int I, int F, int... Ints>
+    class GetDecreaseDimArray<U, I, F, Ints...> {
      public:
-      using type =
-          typename DimExpand<typename GetDecreaseDimArray<I - 1, Ints...>::type,
-                             F>::type;
+      using type = typename DimExpand<
+          typename GetDecreaseDimArray<U, I - 1, Ints...>::type, F>::type;
     };
 
-    template <int F, int... Ints>
-    class GetDecreaseDimArray<0, F, Ints...> {
+    template <typename U, int F, int... Ints>
+    class GetDecreaseDimArray<U, 0, F, Ints...> {
      public:
-      using type = typename GetDecreaseDimArray<-1, Ints...>::type;
+      using type = typename GetDecreaseDimArray<U, -1, Ints...>::type;
     };
 
-    template <int I>
-    class GetDecreaseDimArray<I> {
+    template <typename U, int I>
+    class GetDecreaseDimArray<U, I> {
      public:
-      using type = ndarray<unsigned>;
+      using type = ndarray<U>;
     };
     //=============================================================
 
     template <int I>
     auto argmax() const {
-      typename GetDecreaseDimArray<I, First, Second, Args...>::type ret;
+      typename GetDecreaseDimArray<unsigned, I, First, Second, Args...>::type
+          ret;
       const int jk = size() / GetFact<I, First, Second, Args...>::value;
       const int f = Get<I, First, Second, Args...>::value;
       std::bitset<GetFact<sizeof...(Args) + 1, First, Second, Args...>::value>
@@ -270,6 +270,24 @@ namespace dpl {
           fl[jd] = true;
           if (linerAt(id + ret.linerAt(i) * jk) < linerAt(jd))
             ret.linerAt(i) = j;
+        }
+      }
+      return ret;
+    }
+
+    template <int I>
+    auto max() const {
+      typename GetDecreaseDimArray<T, I, First, Second, Args...>::type ret;
+      const int jk = size() / GetFact<I, First, Second, Args...>::value;
+      const int f = Get<I, First, Second, Args...>::value;
+      std::bitset<GetFact<sizeof...(Args) + 1, First, Second, Args...>::value>
+          fl = 0;
+      for (int i = 0, id = 0; i < ret.size(); i++) {
+        while (fl[id]) id++;
+        ret.linerAt(i) = linerAt(id);
+        for (int j = 0, jd = id; j < f; j++, jd += jk) {
+          fl[jd] = true;
+          ret.linerAt(i) = std::max(ret.linerAt(i), linerAt(jd));
         }
       }
       return ret;

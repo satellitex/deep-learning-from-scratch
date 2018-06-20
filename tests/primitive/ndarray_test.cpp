@@ -248,3 +248,48 @@ TEST(ND_ARRAY_TEST, ARGMAX_3x3x3) {
 
   ASSERT_EQ(r3, x.argmax<2>());
 }
+
+TEST(ND_ARRAY_TEST, MAX_3x4x5x6) {
+  ndarray<float, 3, 4, 5, 6> x;
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 4; j++)
+      for (int k = 0; k < 5; k++)
+        for (int n = 0; n < 6; n++)
+          x.at(i, j, k, n) = (i * 331 + j * 41 + k * 11 + n * 7) % 127;
+
+  ndarray<float, 4, 5, 6> r1;
+  r1.fill(-1e9);
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 4; j++)
+      for (int k = 0; k < 5; k++)
+        for (int n = 0; n < 6; n++)
+          r1.at(j, k, n) = std::max(r1.at(j, k, n), x.at(i, j, k, n));
+  ASSERT_EQ(r1, x.max<0>());
+
+  ndarray<float, 3, 5, 6> r2;
+  r2.fill(-1e9);
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 4; j++)
+      for (int k = 0; k < 5; k++)
+        for (int n = 0; n < 6; n++)
+          r2.at(i, k, n) = std::max(r2.at(i, k, n), x.at(i, j, k, n));
+  ASSERT_EQ(r2, x.max<1>());
+
+  ndarray<float, 3, 4, 6> r3;
+  r3.fill(-1e9);
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 4; j++)
+      for (int k = 0; k < 5; k++)
+        for (int n = 0; n < 6; n++)
+          r3.at(i, j, n) = std::max(r3.at(i, j, n), x.at(i, j, k, n));
+  ASSERT_EQ(r3, x.max<2>());
+
+  ndarray<float, 3, 4, 5> r4;
+  r4.fill(-1e9);
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 4; j++)
+      for (int k = 0; k < 5; k++)
+        for (int n = 0; n < 6; n++)
+          r4.at(i, j, k) = std::max(r4.at(i, j, k), x.at(i, j, k, n));
+  ASSERT_EQ(r4, x.max<3>());
+}
