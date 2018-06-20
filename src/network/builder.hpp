@@ -7,11 +7,11 @@
 
 #include "network.hpp"
 
-namespace network {
+namespace dpl {
   class NetworkBuilder {
    private:
     Network network;
   };
-}  // namespace network
+}  // namespace dpl
 
 #endif  // DEEP_LEARNING_FROM_SCRATCH_BUILDER_HPP

@@ -21,3 +21,7 @@ CMakeCache.txt
 
 # external
 external/
+
+# tmp
+tmp/
+a.out

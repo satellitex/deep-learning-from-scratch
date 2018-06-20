@@ -3,9 +3,10 @@
 //
 
 #include <iostream>
-#include "trainer/trainer.h"
+#include "primitive/primitive.hpp"
 
 int main() {
-  primitive::ndarray nd;
+  dpl::ndarray<float,2,2> nd;
+
   std::cout << "boot :: deep learning lib" << std::endl;
 }

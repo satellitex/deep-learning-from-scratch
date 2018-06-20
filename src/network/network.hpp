@@ -8,15 +8,15 @@
 #include <memory>
 #include "../primitive/primitive.hpp"
 
-using ndarray = primitive::ndarray;
+using ndarray = dpl::ndarray;
 
-namespace network {
+namespace dpl {
   class Network {
     virtual void predict(ndarray& input, std::shared_ptr<ndarray> output, bool train_flag) = 0;
     virtual void loss(ndarray& input, ndarray& teacher, std::shared_ptr<ndarray> output) = 0;
     virtual void accuracy(ndarray& input, ndarray& teacher, std::shared_ptr<ndarray> output, int batch_test) = 0;
     virtual void gradient(ndarray& input, ndarray& teacher, std::shared_ptr<ndarray> output) = 0;
   };
-}  // namespace network
+}  // namespace dpl
 
 #endif  // DEEP_LEARNING_FROM_SCRATCH_NETWORK_HPP

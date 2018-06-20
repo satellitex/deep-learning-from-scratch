@@ -7,9 +7,9 @@
 
 #include "../primitive/primitive.hpp"
 
-using ndarray = primitive::ndarray;
+using ndarray = dpl::ndarray;
 
-namespace optimizer {
+namespace dpl {
     class Optimizer {
         virtual void update(std::shared_ptr<ndarray> params, const ndarray& grads) = 0;
     };
