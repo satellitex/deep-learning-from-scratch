@@ -293,3 +293,18 @@ TEST(ND_ARRAY_TEST, MAX_3x4x5x6) {
           r4.at(i, j, k) = std::max(r4.at(i, j, k), x.at(i, j, k, n));
   ASSERT_EQ(r4, x.max<3>());
 }
+
+TEST(ND_ARRAY_TEST, MAXIMUM_5x4x3) {
+  ndarray<float, 5, 4, 3> x1;
+  ndarray<float, 5, 4, 3> y1;
+  ndarray<float, 5, 4, 3> exp;
+
+  for (int i = 0; i < 5; i++)
+    for (int j = 0; j < 4; j++)
+      for (int k = 0; k < 3; k++) {
+        x1.at(i, j, k) = (i * 7 + j * 117 + k * 41) % 37;
+        y1.at(i, j, k) = (i * 11 + j * 191 + k * 71) % 37;
+        exp.at(i, j, k) = std::max(x1.at(i, j, k), y1.at(i, j, k));
+      }
+  ASSERT_EQ(exp, maximum(x1, y1));
+}

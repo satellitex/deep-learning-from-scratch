@@ -225,7 +225,7 @@ namespace dpl {
 
       typename GetTransposedArray<NArgs...>::type ret;
       make_transpose_<NArgs...>(ret, 0);
-      return ret;
+      return std::move(ret);
     }
 
     // GetDecreaseDimArray<int I, int... Ints>
@@ -272,7 +272,7 @@ namespace dpl {
             ret.linerAt(i) = j;
         }
       }
-      return ret;
+      return std::move(ret);
     }
 
     template <int I>
@@ -290,7 +290,7 @@ namespace dpl {
           ret.linerAt(i) = std::max(ret.linerAt(i), linerAt(jd));
         }
       }
-      return ret;
+      return std::move(ret);
     }
 
     T& linerAt(int index) {
@@ -324,6 +324,14 @@ namespace dpl {
     for (int i = 0; i < First; i++)
       for (int j = 0; j < Second; j++)
         for (int k = 0; k < Third; k++) ret.at(i, k) += a.at(i, j) * b.at(j, k);
+    return std::move(ret);
+  }
+
+  template <typename T, int... Ints>
+  ndarray<T, Ints...> maximum(const ndarray<T, Ints...>& a, const ndarray<T, Ints...>& b) {
+    ndarray<T, Ints...> ret;
+    for (int i = 0; i < a.size(); i++)
+      ret.linerAt(i) = std::max(a.linerAt(i), b.linerAt(i));
     return std::move(ret);
   }
 
