@@ -249,7 +249,7 @@ namespace dpl {
     };
 
     template <int I>
-    void make_reverse_transpose_( Type& v, int id) const {
+    void make_reverse_transpose_(Type& v, int id) const {
       v = linerAt(id);
     }
 
