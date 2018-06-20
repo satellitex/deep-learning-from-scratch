@@ -6,7 +6,6 @@ jobs:
       - image: satellitex/alpine-cmake-git:latest
     steps:
       - checkout
-      - run: echo "A first hello"
       - run:
           name: cmake
           command: |

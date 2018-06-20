@@ -10,6 +10,7 @@
 #include <bitset>
 #include <iostream>
 #include <stdexcept>
+#include <tuple>
 #include <utility>
 #include <vector>
 
