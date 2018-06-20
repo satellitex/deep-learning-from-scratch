@@ -42,17 +42,8 @@ namespace dpl {
     Type& at(int i) { return std::array<Type, First>::at(i); }
     const Type& at(int i) const { return std::array<Type, First>::at(i); }
 
-    ndarray<Type, First>& operator<<(const Type& v) {
-      at(0) = v;
-      initialize_ps_ = 1;
-      return *this;
-    };
-    ndarray<Type, First>& operator,(const Type& v) {
-      if (initialize_ps_ >= size()) throw initialize_ndarray_error();
-      at(initialize_ps_) = v;
-      initialize_ps_++;
-      return *this;
-    };
+    Type& linerAt(int index) { return at(index); }
+    const Type& linerAt(int index) const { return at(index); }
 
     constexpr size_t size() const { return First; }
     constexpr auto shape() const { return std::make_tuple(First); }
@@ -61,10 +52,20 @@ namespace dpl {
       ndarray<Type, NFirst, NArgs...> ret;
       for (int i = 0; i < size(); i++) ret.linerAt(i) = linerAt(i);
       return std::move(ret);
-    };
+    }
 
-    Type& linerAt(int index) { return at(index); }
-    const Type& linerAt(int index) const { return at(index); }
+    ndarray<Type, First>& operator<<(const Type& v) {
+      at(0) = v;
+      initialize_ps_ = 1;
+      return *this;
+    }
+
+    ndarray<Type, First>& operator,(const Type& v) {
+      if (initialize_ps_ >= size()) throw initialize_ndarray_error();
+      at(initialize_ps_) = v;
+      initialize_ps_++;
+      return *this;
+    }
 
    private:
     size_t initialize_ps_;
@@ -84,275 +85,97 @@ namespace dpl {
   template <typename Type, int First, int Second, int... Args>
   class ndarray<Type, First, Second, Args...>
       : public std::array<ndarray<Type, Second, Args...>, First> {
-   public:
-    ndarray() : initialize_ps_(0) {}
-
-    ndarray<Type, First, Second, Args...>& at() { return *this; }
-
-    const ndarray<Type, First, Second, Args...>& at() const { return *this; }
-
-    template <typename... Int>
-    auto& at(int i, Int... args) {
-      return std::array<ndarray<Type, Second, Args...>, First>::at(i).at(
-          args...);
-    }
-
-    template <typename... Int>
-    const auto& at(int i, Int... args) const {
-      return std::array<ndarray<Type, Second, Args...>, First>::at(i).at(
-          args...);
-    }
-
-    ndarray<Type, First, Second, Args...>& fill(const Type& v) {
-      for (int i = 0; i < First; i++) at(i).fill(v);
-      return *this;
-    }
-
-    ndarray<Type, First, Second, Args...>& operator<<(const Type& v) {
-      at(0) << v;
-      initialize_ps_ = 1;
-      return *this;
-    }
-    ndarray<Type, First, Second, Args...>& operator,(const Type& v) {
-      if (initialize_ps_ >= size()) throw initialize_ndarray_error();
-      at(initialize_ps_ / at(0).size()), v;
-      initialize_ps_++;
-      return *this;
-    }
-
-    constexpr size_t size() const { return First * at(0).size(); }
-    constexpr auto shape() const {
-      return std::make_tuple(First, Second, Args...);
-    }
-    template <int NFirst, int... NArgs>
-    ndarray<Type, NFirst, NArgs...> reshape() const {
-      ndarray<Type, NFirst, NArgs...> ret;
-      for (int i = 0; i < size(); i++) ret.linerAt(i) = linerAt(i);
-      return std::move(ret);
-    };
-
+   private:
+    //===============================================================
     // Get<I, Ints...>
     // I : index
     // Ints... : Args...
     // Get<I, Ints...>::value = Args[I]
     template <int I, int... Ints>
-    class Get;
+    struct Get;
 
     template <int I, int F, int... Ints>
-    class Get<I, F, Ints...> {
-     public:
+    struct Get<I, F, Ints...> {
       enum { value = Get<I - 1, Ints...>::value };
     };
 
     template <int F, int... Ints>
-    class Get<0, F, Ints...> {
-     public:
+    struct Get<0, F, Ints...> {
       enum { value = F };
     };
     //================================================================
 
+    //================================================================
     // GetFact
     // I : index
     // Ints... : Args...
     // GetFact<I, Ints...>::value = Ints[0] * Ints[1] * ... Ints[I]
     template <int I, int... Ints>
-    class GetFact;
+    struct GetFact;
 
     template <int I, int F, int... Ints>
-    class GetFact<I, F, Ints...> {
-     public:
+    struct GetFact<I, F, Ints...> {
       enum { value = F * GetFact<I - 1, Ints...>::value };
     };
 
     template <int F, int... Ints>
-    class GetFact<0, F, Ints...> {
-     public:
+    struct GetFact<0, F, Ints...> {
       enum { value = F };
     };
-    //=============================================================
+    //================================================================
 
+    //================================================================
     // DimExpand<D, Dims...>
     // D : sizeof Dimentions
     // Dims... : ndarray<Type, Dims...>
     template <typename Arr, int D>
-    class DimExpand;
+    struct DimExpand;
 
     // version ndarray DimExpand<D, Dims...>::value = ndarray<Type, D, Dims...>
     template <typename U, int D, int... Dims>
-    class DimExpand<ndarray<U, Dims...>, D> {
-     public:
+    struct DimExpand<ndarray<U, Dims...>, D> {
       using type = ndarray<U, D, Dims...>;
     };
+    //================================================================
 
-    //==============================================================
-
+    //================================================================
     // GetTranposedNdArray<int... Ints>
     // Ints : Args[ Ints[i] ]...
     // type = ndarray< T, Args[Ints[i]...] >
     template <int... Ints>
-    class GetTransposedArray;
+    struct GetTransposedArray;
 
     template <int F, int S, int... Ints>
-    class GetTransposedArray<F, S, Ints...> {
-     public:
+    struct GetTransposedArray<F, S, Ints...> {
       using type =
           typename DimExpand<typename GetTransposedArray<S, Ints...>::type,
                              Get<F, First, Second, Args...>::value>::type;
     };
     template <int F>
-    class GetTransposedArray<F> {
-     public:
+    struct GetTransposedArray<F> {
       using type = ndarray<Type, Get<F, First, Second, Args...>::value>;
     };
-    //=============================================================
+    //================================================================
 
-    template <int... NArgs>
-    void make_transpose_(Type& v, int id) const {
-      static_assert(sizeof...(NArgs) == 0);
-      v = linerAt(id);
-    }
-
-    template <int F, int... NArgs>
-    void make_transpose_(
-        typename GetTransposedArray<F, NArgs...>::type& transpose_array,
-        int id) const {
-      for (int i = 0; i < Get<F, First, Second, Args...>::value;
-           i++, id += size() / GetFact<F, First, Second, Args...>::value)
-        make_transpose_<NArgs...>(transpose_array.at(i), id);
-    }
-
-    template <int... NArgs>
-    auto transpose() const {
-      static_assert(sizeof...(NArgs) == sizeof...(Args) + 2,
-                    "Transpose don't match number of arguments.");
-
-      typename GetTransposedArray<NArgs...>::type ret;
-      make_transpose_<NArgs...>(ret, 0);
-      return std::move(ret);
-    }
-
+    //================================================================
     // GetReversedTranposedArray
     // I : Args Size
     // GetReversedTransposeArray<I>::type = ndarray<T,Args[I-1],
     // Args[I-2],...,Args[0]>
     template <int I, typename Dummy = void>
-    class GetReversedTransposedArray {
-     public:
+    struct GetReversedTransposedArray {
       using type = typename DimExpand<
           typename GetReversedTransposedArray<I - 1, Dummy>::type,
           Get<I - 1, First, Second, Args...>::value>::type;
     };
 
     template <typename Dummy>
-    class GetReversedTransposedArray<0, Dummy> {
-     public:
+    struct GetReversedTransposedArray<0, Dummy> {
       using type = ndarray<Type>;
     };
+    //================================================================
 
-    template <int I>
-    void make_reverse_transpose_(Type& v, int id) const {
-      v = linerAt(id);
-    }
-
-    template <int I>
-    void make_reverse_transpose_(
-        typename GetReversedTransposedArray<I>::type& transposed_array,
-        int id) const {
-      for (int i = 0; i < Get<I - 1, First, Second, Args...>::value;
-           i++, id += size() / GetFact<I - 1, First, Second, Args...>::value)
-        make_reverse_transpose_<I - 1>(transposed_array.at(i), id);
-    }
-
-    // reverse transpose
-    auto T() const {
-      typename GetReversedTransposedArray<sizeof...(Args) + 2>::type ret;
-      make_reverse_transpose_<sizeof...(Args) + 2>(ret, 0);
-      return ret;
-    }
-
-    // GetDecreaseDimArray<int I, int... Ints>
-    // I : delete I-th dimension
-    // Ints : Args[ Ints[i] ]...
-    // type = ndarray< T, Args[0],...Args[I-1],Args[I+1],...,Args[N-1] >
-    template <typename U, int I, int... Ints>
-    class GetDecreaseDimArray;
-
-    template <typename U, int I, int F, int... Ints>
-    class GetDecreaseDimArray<U, I, F, Ints...> {
-     public:
-      using type = typename DimExpand<
-          typename GetDecreaseDimArray<U, I - 1, Ints...>::type, F>::type;
-    };
-
-    template <typename U, int F, int... Ints>
-    class GetDecreaseDimArray<U, 0, F, Ints...> {
-     public:
-      using type = typename GetDecreaseDimArray<U, -1, Ints...>::type;
-    };
-
-    template <typename U, int I>
-    class GetDecreaseDimArray<U, I> {
-     public:
-      using type = ndarray<U>;
-    };
-    //=============================================================
-
-    template <int I>
-    auto argmax() const {
-      typename GetDecreaseDimArray<unsigned, I, First, Second, Args...>::type
-          ret;
-      const int jk = size() / GetFact<I, First, Second, Args...>::value;
-      const int f = Get<I, First, Second, Args...>::value;
-      std::bitset<GetFact<sizeof...(Args) + 1, First, Second, Args...>::value>
-          fl = 0;
-      for (int i = 0, id = 0; i < ret.size(); i++) {
-        ret.linerAt(i) = 0;
-        while (fl[id]) id++;
-        for (int j = 0, jd = id; j < f; j++, jd += jk) {
-          fl[jd] = true;
-          if (linerAt(id + ret.linerAt(i) * jk) < linerAt(jd))
-            ret.linerAt(i) = j;
-        }
-      }
-      return std::move(ret);
-    }
-
-    template <int I>
-    auto max() const {
-      typename GetDecreaseDimArray<Type, I, First, Second, Args...>::type ret;
-      const int jk = size() / GetFact<I, First, Second, Args...>::value;
-      const int f = Get<I, First, Second, Args...>::value;
-      std::bitset<GetFact<sizeof...(Args) + 1, First, Second, Args...>::value>
-          fl = 0;
-      for (int i = 0, id = 0; i < ret.size(); i++) {
-        while (fl[id]) id++;
-        ret.linerAt(i) = linerAt(id);
-        for (int j = 0, jd = id; j < f; j++, jd += jk) {
-          fl[jd] = true;
-          ret.linerAt(i) = std::max(ret.linerAt(i), linerAt(jd));
-        }
-      }
-      return std::move(ret);
-    }
-
-    template <int I>
-    auto sum() const {
-      typename GetDecreaseDimArray<Type, I, First, Second, Args...>::type ret;
-      const int jk = size() / GetFact<I, First, Second, Args...>::value;
-      const int f = Get<I, First, Second, Args...>::value;
-      std::bitset<GetFact<sizeof...(Args) + 1, First, Second, Args...>::value>
-          fl = 0;
-      for (int i = 0, id = 0; i < ret.size(); i++) {
-        while (fl[id]) id++;
-        ret.linerAt(i) = 0;
-        for (int j = 0, jd = id; j < f; j++, jd += jk) {
-          fl[jd] = true;
-          ret.linerAt(i) += linerAt(jd);
-        }
-      }
-      return std::move(ret);
-    }
-
+    //================================================================
     // GetSlicedArray
     // I : i-th dimension is sliced
     // SZ : i-th dimention's number of elements = SZ
@@ -380,6 +203,183 @@ namespace dpl {
     struct GetSlicedArray<I, SZ> {
       using type = ndarray<Type>;
     };
+    //================================================================
+
+    //================================================================
+    // GetDecreaseDimArray<int I, int... Ints>
+    // I : delete I-th dimension
+    // Ints : Args[ Ints[i] ]...
+    // type = ndarray< T, Args[0],...Args[I-1],Args[I+1],...,Args[N-1] >
+    template <typename U, int I, int... Ints>
+    struct GetDecreaseDimArray;
+
+    template <typename U, int I, int F, int... Ints>
+    struct GetDecreaseDimArray<U, I, F, Ints...> {
+      using type = typename DimExpand<
+          typename GetDecreaseDimArray<U, I - 1, Ints...>::type, F>::type;
+    };
+
+    template <typename U, int F, int... Ints>
+    struct GetDecreaseDimArray<U, 0, F, Ints...> {
+      using type = typename GetDecreaseDimArray<U, -1, Ints...>::type;
+    };
+
+    template <typename U, int I>
+    struct GetDecreaseDimArray<U, I> {
+      using type = ndarray<U>;
+    };
+    //================================================================
+   public:
+    ndarray() : initialize_ps_(0) {}
+
+    ndarray<Type, First, Second, Args...>& at() { return *this; }
+    const ndarray<Type, First, Second, Args...>& at() const { return *this; }
+
+    template <typename... Int>
+    auto& at(int i, Int... args) {
+      return std::array<ndarray<Type, Second, Args...>, First>::at(i).at(
+          args...);
+    }
+    template <typename... Int>
+    const auto& at(int i, Int... args) const {
+      return std::array<ndarray<Type, Second, Args...>, First>::at(i).at(
+          args...);
+    }
+
+    Type& linerAt(int index) {
+      return at(index / at(0).size()).linerAt(index % at(0).size());
+    }
+    const Type& linerAt(int index) const {
+      return at(index / at(0).size()).linerAt(index % at(0).size());
+    }
+
+    ndarray<Type, First, Second, Args...>& fill(const Type& v) {
+      for (int i = 0; i < First; i++) at(i).fill(v);
+      return *this;
+    }
+
+    constexpr size_t size() const { return First * at(0).size(); }
+    constexpr auto shape() const {
+      return std::make_tuple(First, Second, Args...);
+    }
+    template <int NFirst, int... NArgs>
+    ndarray<Type, NFirst, NArgs...> reshape() const {
+      ndarray<Type, NFirst, NArgs...> ret;
+      for (int i = 0; i < size(); i++) ret.linerAt(i) = linerAt(i);
+      return std::move(ret);
+    };
+
+   private:
+    template <int... NArgs>
+    void make_transpose_(Type& v, int id) const {
+      static_assert(sizeof...(NArgs) == 0);
+      v = linerAt(id);
+    }
+
+    template <int F, int... NArgs>
+    void make_transpose_(
+        typename GetTransposedArray<F, NArgs...>::type& transpose_array,
+        int id) const {
+      for (int i = 0; i < Get<F, First, Second, Args...>::value;
+           i++, id += size() / GetFact<F, First, Second, Args...>::value)
+        make_transpose_<NArgs...>(transpose_array.at(i), id);
+    }
+
+   public:
+    // transpose<I1,I2,...,IN>
+    // e.g 1) ndarray<3,4,5>.transpose<2,1,0>() -> ndarray<5,4,3>
+    // e.g 2) ndarray<5,6,7>.transpose<1,0,2>() -> ndarray<6,5,7>
+    template <int... NArgs>
+    auto transpose() const {
+      static_assert(sizeof...(NArgs) == sizeof...(Args) + 2,
+                    "Transpose don't match number of arguments.");
+
+      typename GetTransposedArray<NArgs...>::type ret;
+      make_transpose_<NArgs...>(ret, 0);
+      return std::move(ret);
+    }
+
+   private:
+    template <int I>
+    void make_reverse_transpose_(Type& v, int id) const {
+      v = linerAt(id);
+    }
+
+    template <int I>
+    void make_reverse_transpose_(
+        typename GetReversedTransposedArray<I>::type& transposed_array,
+        int id) const {
+      for (int i = 0; i < Get<I - 1, First, Second, Args...>::value;
+           i++, id += size() / GetFact<I - 1, First, Second, Args...>::value)
+        make_reverse_transpose_<I - 1>(transposed_array.at(i), id);
+    }
+
+   public:
+    // reverse transpose
+    auto T() const {
+      typename GetReversedTransposedArray<sizeof...(Args) + 2>::type ret;
+      make_reverse_transpose_<sizeof...(Args) + 2>(ret, 0);
+      return ret;
+    }
+
+    // argmax, axis = I
+    template <int I>
+    auto argmax() const {
+      typename GetDecreaseDimArray<unsigned, I, First, Second, Args...>::type
+          ret;
+      const int jk = size() / GetFact<I, First, Second, Args...>::value;
+      const int f = Get<I, First, Second, Args...>::value;
+      std::bitset<GetFact<sizeof...(Args) + 1, First, Second, Args...>::value>
+          fl = 0;
+      for (int i = 0, id = 0; i < ret.size(); i++) {
+        ret.linerAt(i) = 0;
+        while (fl[id]) id++;
+        for (int j = 0, jd = id; j < f; j++, jd += jk) {
+          fl[jd] = true;
+          if (linerAt(id + ret.linerAt(i) * jk) < linerAt(jd))
+            ret.linerAt(i) = j;
+        }
+      }
+      return std::move(ret);
+    }
+
+    // max, axis = I
+    template <int I>
+    auto max() const {
+      typename GetDecreaseDimArray<Type, I, First, Second, Args...>::type ret;
+      const int jk = size() / GetFact<I, First, Second, Args...>::value;
+      const int f = Get<I, First, Second, Args...>::value;
+      std::bitset<GetFact<sizeof...(Args) + 1, First, Second, Args...>::value>
+          fl = 0;
+      for (int i = 0, id = 0; i < ret.size(); i++) {
+        while (fl[id]) id++;
+        ret.linerAt(i) = linerAt(id);
+        for (int j = 0, jd = id; j < f; j++, jd += jk) {
+          fl[jd] = true;
+          ret.linerAt(i) = std::max(ret.linerAt(i), linerAt(jd));
+        }
+      }
+      return std::move(ret);
+    }
+
+    // sum, axis = I
+    template <int I>
+    auto sum() const {
+      typename GetDecreaseDimArray<Type, I, First, Second, Args...>::type ret;
+      const int jk = size() / GetFact<I, First, Second, Args...>::value;
+      const int f = Get<I, First, Second, Args...>::value;
+      std::bitset<GetFact<sizeof...(Args) + 1, First, Second, Args...>::value>
+          fl = 0;
+      for (int i = 0, id = 0; i < ret.size(); i++) {
+        while (fl[id]) id++;
+        ret.linerAt(i) = 0;
+        for (int j = 0, jd = id; j < f; j++, jd += jk) {
+          fl[jd] = true;
+          ret.linerAt(i) += linerAt(jd);
+        }
+      }
+      return std::move(ret);
+    }
 
     // sliced i-th[S, E) step is ST
     template <int I, int S, int E, int ST>
@@ -399,11 +399,16 @@ namespace dpl {
       return std::move(ret);
     }
 
-    Type& linerAt(int index) {
-      return at(index / at(0).size()).linerAt(index % at(0).size());
+    ndarray<Type, First, Second, Args...>& operator<<(const Type& v) {
+      at(0) << v;
+      initialize_ps_ = 1;
+      return *this;
     }
-    const Type& linerAt(int index) const {
-      return at(index / at(0).size()).linerAt(index % at(0).size());
+    ndarray<Type, First, Second, Args...>& operator,(const Type& v) {
+      if (initialize_ps_ >= size()) throw initialize_ndarray_error();
+      at(initialize_ps_ / at(0).size()), v;
+      initialize_ps_++;
+      return *this;
     }
 
    private:
