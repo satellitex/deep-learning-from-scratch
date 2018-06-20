@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <array>
+#include <bitset>
 #include <iostream>
 #include <stdexcept>
 #include <utility>
@@ -22,6 +23,9 @@ namespace dpl {
 
   template <typename T, int... Args>
   class ndarray;
+
+  template <typename T>
+  class ndarray<T> {};
 
   template <typename T, int First>
   class ndarray<T, First> : public std::array<T, First> {
@@ -167,15 +171,16 @@ namespace dpl {
     // DimExpand<D, Dims...>
     // D : sizeof Dimentions
     // Dims... : ndarray<T, Dims...>
-    // DimExpand<D, Dims...>::value = ndarray<T, D, Dims...>
     template <typename Arr, int D>
     class DimExpand;
 
-    template <int D, int... Dims>
-    class DimExpand<ndarray<T, Dims...>, D> {
+    // version ndarray DimExpand<D, Dims...>::value = ndarray<T, D, Dims...>
+    template <typename U, int D, int... Dims>
+    class DimExpand<ndarray<U, Dims...>, D> {
      public:
-      using type = ndarray<T, D, Dims...>;
+      using type = ndarray<U, D, Dims...>;
     };
+
     //==============================================================
 
     // GetTranposedNdArray<int... Ints>
@@ -221,7 +226,54 @@ namespace dpl {
       typename GetTransposedArray<NArgs...>::type ret;
       make_transpose_<NArgs...>(ret, 0);
       return ret;
+    }
+
+    // GetDecreaseDimArray<int I, int... Ints>
+    // I : delete I-th dimension
+    // Ints : Args[ Ints[i] ]...
+    // type = ndarray< T, Args[0],...Args[I-1],Args[I+1],...,Args[N-1] >
+    template <int I, int... Ints>
+    class GetDecreaseDimArray;
+
+    template <int I, int F, int... Ints>
+    class GetDecreaseDimArray<I, F, Ints...> {
+     public:
+      using type =
+          typename DimExpand<typename GetDecreaseDimArray<I - 1, Ints...>::type,
+                             F>::type;
     };
+
+    template <int F, int... Ints>
+    class GetDecreaseDimArray<0, F, Ints...> {
+     public:
+      using type = typename GetDecreaseDimArray<-1, Ints...>::type;
+    };
+
+    template <int I>
+    class GetDecreaseDimArray<I> {
+     public:
+      using type = ndarray<unsigned>;
+    };
+    //=============================================================
+
+    template <int I>
+    auto argmax() const {
+      typename GetDecreaseDimArray<I, First, Second, Args...>::type ret;
+      const int jk = size() / GetFact<I, First, Second, Args...>::value;
+      const int f = Get<I, First, Second, Args...>::value;
+      std::bitset<GetFact<sizeof...(Args) + 1, First, Second, Args...>::value>
+          fl = 0;
+      for (int i = 0, id = 0; i < ret.size(); i++) {
+        ret.linerAt(i) = 0;
+        while (fl[id]) id++;
+        for (int j = 0, jd = id; j < f; j++, jd += jk) {
+          fl[jd] = true;
+          if (linerAt(id + ret.linerAt(i) * jk) < linerAt(jd))
+            ret.linerAt(i) = j;
+        }
+      }
+      return ret;
+    }
 
     T& linerAt(int index) {
       return at(index / at(0).size()).linerAt(index % at(0).size());
@@ -232,7 +284,7 @@ namespace dpl {
 
    private:
     size_t initialize_ps_;
-  };
+  };  // namespace dpl
 
   template <typename T, int First, int Second, int... Args>
   std::ostream& operator<<(std::ostream& os,

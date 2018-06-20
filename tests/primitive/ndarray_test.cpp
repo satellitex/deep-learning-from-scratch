@@ -214,3 +214,37 @@ TEST(ND_ARRAY_TEST, TRANSPOSE_5x4x3x2x3) {
           for (int m = 0; m < 6; m++)
             ASSERT_FLOAT_EQ(x.at(i, j, k, n, m), tx2.at(n, m, i, k, j));
 }
+
+TEST(ND_ARRAY_TEST, ARGMAX_3x3x3) {
+  ndarray<float, 3, 4, 5> x;
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 4; j++)
+      for (int k = 0; k < 5; k++)
+        x.at(i, j, k) = (i * 331 + j * 41 + k * 11) % 127;
+  ndarray<unsigned, 4, 5> r1;
+  r1.fill(0);
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 4; j++)
+      for (int k = 0; k < 5; k++)
+        if (x.at(i, j, k) > x.at(r1.at(j, k), j, k)) r1.at(j, k) = unsigned(i);
+
+  ASSERT_EQ(r1, x.argmax<0>());
+
+  ndarray<unsigned, 3, 5> r2;
+  r2.fill(0);
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 4; j++)
+      for (int k = 0; k < 5; k++)
+        if (x.at(i, j, k) > x.at(i, r2.at(i, k), k)) r2.at(i, k) = unsigned(j);
+
+  ASSERT_EQ(r2, x.argmax<1>());
+
+  ndarray<unsigned, 3, 4> r3;
+  r3.fill(0);
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 4; j++)
+      for (int k = 0; k < 5; k++)
+        if (x.at(i, j, k) > x.at(i, j, r3.at(i, j))) r3.at(i, j) = unsigned(k);
+
+  ASSERT_EQ(r3, x.argmax<2>());
+}
