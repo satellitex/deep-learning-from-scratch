@@ -293,6 +293,25 @@ namespace dpl {
       return std::move(ret);
     }
 
+    template <int I>
+    auto sum() const {
+      typename GetDecreaseDimArray<T, I, First, Second, Args...>::type ret;
+      const int jk = size() / GetFact<I, First, Second, Args...>::value;
+      const int f = Get<I, First, Second, Args...>::value;
+      std::bitset<GetFact<sizeof...(Args) + 1, First, Second, Args...>::value>
+          fl = 0;
+      for (int i = 0, id = 0; i < ret.size(); i++) {
+        while (fl[id]) id++;
+        ret.linerAt(i) = 0;
+        for (int j = 0, jd = id; j < f; j++, jd += jk) {
+          fl[jd] = true;
+          ret.linerAt(i) += linerAt(jd);
+        }
+      }
+      return std::move(ret);
+    }
+
+
     T& linerAt(int index) {
       return at(index / at(0).size()).linerAt(index % at(0).size());
     }
@@ -328,7 +347,8 @@ namespace dpl {
   }
 
   template <typename T, int... Ints>
-  ndarray<T, Ints...> maximum(const ndarray<T, Ints...>& a, const ndarray<T, Ints...>& b) {
+  ndarray<T, Ints...> maximum(const ndarray<T, Ints...>& a,
+                              const ndarray<T, Ints...>& b) {
     ndarray<T, Ints...> ret;
     for (int i = 0; i < a.size(); i++)
       ret.linerAt(i) = std::max(a.linerAt(i), b.linerAt(i));
