@@ -6,53 +6,39 @@
 
 ---
 
-本リポジトリはオライリー・ジャパン発行書籍『[ゼロから作る Deep Learning](http://www.oreilly.co.jp/books/9784873117584/)』のサポートサイトです。
+本リポジトリはオライリー・ジャパン発行書籍『[ゼロから作る Deep Learning](http://www.oreilly.co.jp/books/9784873117584/)』を参考にしました。
 
 ## ファイル構成
 
 |フォルダ名 |説明                         |
 |:--        |:--                          |
-|ch01       |1章で使用するソースコード    |
-|ch02       |2章で使用するソースコード    |
-|...        |...                          |
-|ch08       |8章で使用するソースコード    |
-|common     |共通で使用するソースコード   |
-|dataset    |データセット用のソースコード |
-
-
-ソースコードの解説は本書籍をご覧ください。
+|cmake      |外部依存関係に関する cmake    |
+|src        |本体のソースコード    |
+|tests      |テストのソースコード    |
 
 ## 必要条件
-ソースコードを実行するには、下記のソフトウェアがインストールされている必要があります。
 
-* Python 3.x
-* NumPy
-* Matplotlib
-
-※Pythonのバージョンは、3系を利用します。
+* c++14
+* cmake
+* make
 
 ## 実行方法
 
-各章のフォルダへ移動して、Pythonコマンドを実行します。
-
+### build
 ```
-$ cd ch01
-$ python man.py
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make
+```
 
-$ cd ../ch05
-$ python train_nueralnet.py
+### test
+(上記で build したディレクトリで)
+```
+$ make test
 ```
 
 ## ライセンス
 
 本リポジトリのソースコードは[MITライセンス](http://www.opensource.org/licenses/MIT)です。
 商用・非商用問わず、自由にご利用ください。
-
-## 正誤表
-
-本書の正誤情報は以下のページで公開しています。
-
-https://github.com/oreilly-japan/deep-learning-from-scratch/wiki/errata
-
-本ページに掲載されていない誤植など間違いを見つけた方は、[japan＠oreilly.co.jp](<mailto:japan＠oreilly.co.jp>)までお知らせください。
-
