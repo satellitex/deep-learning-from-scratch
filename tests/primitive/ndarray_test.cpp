@@ -565,3 +565,58 @@ TEST(ND_ARRAY_TEST, DIV_OPERSTOR_11_V) {
   }
   ASSERT_EQ(exp, x1 / v);
 }
+
+TEST(ND_ARRAY_TEST, SLICE_3x4x5) {
+  constexpr int a = 0, b = 2;
+  constexpr int c = 1, d = 3;
+  constexpr int e = 4, f = 5;
+
+  ndarray<float, 3, 4, 5> x1;
+  ndarray<float, b - a, 4, 5> exp1;
+  ndarray<float, 3, d - c, 5> exp2;
+  ndarray<float, 3, 4, f - e> exp3;
+  ndarray<float, 3, 2, 5> exp4;
+
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 4; j++)
+      for (int k = 0; k < 5; k++) {
+        x1.at(i, j, k) = (i * 7 + j * 117 + k * 41) % 37 + 1;
+        if (a <= i && i < b) exp1.at(i - a, j, k) = x1.at(i, j, k);
+        if (c <= j && j < d) exp2.at(i, j - c, k) = x1.at(i, j, k);
+        if (e <= k && k < f) exp3.at(i, j, k - e) = x1.at(i, j, k);
+        if (j % 2 == 0) exp4.at(i, j / 2, k) = x1.at(i, j, k);
+      }
+
+  auto res1 = x1.slice<0, a, b, 1>();
+  ASSERT_EQ(exp1, res1);
+
+  auto res2 = x1.slice<1, c, d, 1>();
+  ASSERT_EQ(exp2, res2);
+
+  auto res3 = x1.slice<2, e, f, 1>();
+  ASSERT_EQ(exp3, res3);
+
+  auto res4 = x1.slice<1, 0, 4, 2>();
+  ASSERT_EQ(exp4, res4);
+}
+
+TEST(ND_ARRAY_TEST, SLICE_3x4x5x6x7) {
+  constexpr int a = 1, b = 7, st = 3;
+
+  ndarray<float, 3, 4, 5, 8, 7> x1;
+  ndarray<float, 3, 4, 5, (b - a) / st, 7> exp1;
+
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 4; j++)
+      for (int k = 0; k < 5; k++)
+        for (int n = 0; n < 8; n++)
+          for (int m = 0; m < 7; m++) {
+            x1.at(i, j, k, n, m) =
+                (i * 7 + j * 117 + k * 41 + n * 991 + m * 117) % 91 + 1;
+            if (a <= n && n < b && (n - a) % st == 0)
+              exp1.at(i, j, k, (n - a) / st, m) = x1.at(i, j, k, n, m);
+          }
+
+  auto res1 = x1.slice<3, a, b, st>();
+  ASSERT_EQ(exp1, res1);
+}

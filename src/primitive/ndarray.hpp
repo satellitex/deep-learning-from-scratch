@@ -311,6 +311,52 @@ namespace dpl {
       return std::move(ret);
     }
 
+    // GetSlicedArray
+    // I : i-th dimension is sliced
+    // SZ : i-th dimention's number of elements = SZ
+    // Ints : dimension's
+    // GetSlicedArray<I,SZ,Ints...>::type
+    // ndarray<T,Ints[0],...SZ,...,Ints[N-1]>;
+    template <int I, int SZ, int... Ints>
+    struct GetSlicedArray;
+
+    template <int I, int SZ, int F, int... Ints>
+    struct GetSlicedArray<I, SZ, F, Ints...> {
+      using type =
+          typename DimExpand<typename GetSlicedArray<I - 1, SZ, Ints...>::type,
+                             F>::type;
+    };
+
+    template <int SZ, int F, int... Ints>
+    struct GetSlicedArray<0, SZ, F, Ints...> {
+      using type =
+          typename DimExpand<typename GetSlicedArray<-1, SZ, Ints...>::type,
+                             SZ>::type;
+    };
+
+    template <int I, int SZ>
+    struct GetSlicedArray<I, SZ> {
+      using type = ndarray<T>;
+    };
+
+    // sliced i-th[S, E) step is ST
+    template <int I, int S, int E, int ST>
+    auto slice() const {
+      static_assert(ST > 0, "ST must be ST > 0");
+      typename GetSlicedArray<I, (E - S) / ST, First, Second, Args...>::type
+          ret;
+      const int jk = size() / GetFact<I, First, Second, Args...>::value;
+      const int f = Get<I, First, Second, Args...>::value;
+      for (int i = 0, id = jk * S; i < size() / jk / f; i++, id += f * jk) {
+        for (int j = 0; j < (E-S); j += ST) {
+          for (int k = 0; k < jk; k++)
+            ret.linerAt(i * jk * ((E - S)/ST) + j/ST * jk + k) =
+                linerAt(id + j * jk + k);
+        }
+      }
+      return std::move(ret);
+    };
+
     T& linerAt(int index) {
       return at(index / at(0).size()).linerAt(index % at(0).size());
     }
