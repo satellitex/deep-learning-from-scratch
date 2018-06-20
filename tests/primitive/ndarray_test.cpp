@@ -378,3 +378,28 @@ TEST(ND_ARRAY_TEST, PLUS_OPERSTOR_3x4x5_V) {
       }
   ASSERT_EQ(exp, x1 + v);
 }
+
+TEST(ND_ARRAY_TEST, PLUS_OPERSTOR_11) {
+  ndarray<float, 11> x1;
+  ndarray<float, 11> y1;
+  ndarray<float, 11> exp;
+
+  for (int i = 0; i < 11; i++) {
+    x1.at(i) = i;
+    y1.at(i) = i * 2;
+    exp.at(i) = x1.at(i) + y1.at(i);
+  }
+  ASSERT_EQ(exp, x1 + y1);
+}
+
+TEST(ND_ARRAY_TEST, PLUS_OPERSTOR_11_V) {
+  ndarray<float, 11> x1;
+  float v = 100.0;
+  ndarray<float, 11> exp;
+
+  for (int i = 0; i < 11; i++) {
+    x1.at(i) = i;
+    exp.at(i) = x1.at(i) + v;
+  }
+  ASSERT_EQ(exp, x1 + v);
+}
