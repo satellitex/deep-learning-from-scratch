@@ -446,40 +446,8 @@ namespace dpl {
      * OUT_H = (H + 2*PAD - FILTER_H)/STRIDE + 1
      * OUT_W = (W + 2*PAD - FILTER_W)/STRIDE + 1
      */
-    template <int FILTER_H, int FILTER_W, int STRIDE, int PAD>
-    auto im2col() const {
-      static_assert(sizeof...(Args) != 2,
-                    "usage : can only used by ndarray<データ数,チャンネル数, "
-                    "高さ, 幅> type");
-      constexpr int N = First;
-      constexpr int C = Second;
-      constexpr int H = Get<0, Args...>::value;
-      constexpr int W = Get<1, Args...>::value;
-      constexpr int pad_ = PAD;
-      constexpr int OUT_H = (H + 2 * PAD - FILTER_H) / STRIDE + 1;
-      constexpr int OUT_W = (W + 2 * PAD - FILTER_W) / STRIDE + 1;
-
-      //      ndarray<Type, N, C, H + pad_ * 2, W> tmp = this->pad<2, PAD,
-      //      PAD>(); ndarray<Type, N, C, H + pad_ * 2, W + pad_* 2> img =
-      //      tmp.pad<3, PAD, PAD>(); ndarray<Type, N, C, FILTER_H, FILTER_W,
-      //      OUT_H, OUT_W> col; col.fill(0);
-      //
-      //      for (int n = 0; n < N; n++)
-      //        for (int c = 0; c < C; c++)
-      //          for (int y = 0; y < FILTER_H; y++)
-      //            for (int x = 0; x < FILTER_W; x++)
-      //              for (int oy = 0, iy = y; iy < y + STRIDE * OUT_H;
-      //                   oy++, iy += STRIDE)
-      //                for (int ox = 0, ix = x; ix < x + STRIDE * OUT_W;
-      //                     ox++, ix += STRIDE)
-      //                  col.at(n, c, y, x, oy, ox) = img.at(n, c, y, x, ix,
-      //                  iy);
-      //
-      //      auto ret = col.transpose<0, 4, 5, 1, 2, 3>()
-      //                     .reshape<N * OUT_H * OUT_W, C * FILTER_H *
-      //                     FILTER_W>();
-      //      return std::move(ret);
-    }
+    template <int FILTER_H, int FILTER_W, int PAD, int STRIDE>
+    auto im2col() const;
 
    public:
     template <int I, int PAD_L, int PAD_R>
@@ -622,6 +590,47 @@ namespace dpl {
     ndarray<Type, Ints...> ret;
     for (int i = 0; i < a.size(); i++)
       ret.linerAt(i) = std::max(a.linerAt(i), b.linerAt(i));
+    return std::move(ret);
+  }
+
+  template <typename Type, int First, int Second, int... Args>
+  template <int FILTER_H, int FILTER_W, int PAD, int STRIDE>
+  auto ndarray<Type, First, Second, Args...>::im2col() const {
+    static_assert(sizeof...(Args) != 2,
+                  "usage : can only used by ndarray<データ数,チャンネル数, "
+                  "高さ, 幅> type");
+    constexpr int N = First;
+    constexpr int C = Second;
+    constexpr int H = Get<0, Args...>::value;
+    constexpr int W = Get<1, Args...>::value;
+    constexpr int OUT_H = (H + 2 * PAD - FILTER_H) / STRIDE + 1;
+    constexpr int OUT_W = (W + 2 * PAD - FILTER_W) / STRIDE + 1;
+
+    ndarray<Type, N, C, H + PAD * 2, W + PAD * 2, H + PAD * 2> img;
+    for (int n = 0; n < N; n++)
+      for (int c = 0; c < C; c++)
+        for (int y = 0; y < H; y++)
+          for (int x = 0; x < W; x++)
+            img.at(n, c, y + PAD, x + PAD) = at(n, c, y, x);
+
+    ndarray<Type, N, C, FILTER_H, FILTER_W, OUT_H, OUT_W> col;
+    col.fill(0);
+    for (int n = 0; n < N; n++)
+      for (int c = 0; c < C; c++)
+        for (int y = 0; y < FILTER_H; y++)
+          for (int x = 0; x < FILTER_W; x++)
+            for (int oy = 0, iy = y; iy < y + STRIDE * OUT_H;
+                 oy++, iy += STRIDE)
+              for (int ox = 0, ix = x; ix < x + STRIDE * OUT_W;
+                   ox++, ix += STRIDE)
+                col.at(n, c, y, x, oy, ox) = img.at(n, c, y, x, ix, iy);
+
+//    ndarray<Type, N, OUT_H, OUT_W, C, FILTER_H, FILTER_W> ret =
+//        col.transpose<0, 4, 5, 1, 2, 3>();
+
+    ndarray<Type, N * OUT_H * OUT_W, Second * FILTER_H * FILTER_W> ret2 =
+        col.reshape<N * OUT_H * OUT_W, Second * FILTER_H * FILTER_W>();
+
     return std::move(ret);
   }
 
