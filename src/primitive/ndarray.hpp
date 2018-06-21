@@ -229,6 +229,34 @@ namespace dpl {
       using type = ndarray<U>;
     };
     //================================================================
+
+    //================================================================
+    // GetReshapedByIndexArray<int I, int P, int... Ints>
+    // I : reshaped Index is I-th dimension
+    // P : reshaped add number of elements by Index is I-th dimension.
+    // Ints : dimensions
+    // type = ndarray< T, Ints[0], ..., Ints[I] + P, ..., Ints[N-1] >
+    template <int I, int P, int... Ints>
+    struct GetReshapedByIndexArray;
+
+    template <int I, int P, int F, int... Ints>
+    struct GetReshapedByIndexArray<I, P, F, Ints...> {
+      using type = typename DimExpand<
+          typename GetReshapedByIndexArray<I - 1, P, Ints...>::type, F>::type;
+    };
+
+    template <int P, int F, int... Ints>
+    struct GetReshapedByIndexArray<0, P, F, Ints...> {
+      using type = typename DimExpand<
+          typename GetReshapedByIndexArray<-1, P, Ints...>::type, F + P>::type;
+    };
+
+    template <int I, int P>
+    struct GetReshapedByIndexArray<I, P> {
+      using type = ndarray<Type>;
+    };
+    //================================================================
+
    public:
     ndarray() : initialize_ps_(0) {}
 
@@ -396,6 +424,77 @@ namespace dpl {
                 linerAt(id + j * jk + k);
         }
       }
+      return std::move(ret);
+    }
+
+    /*
+     * Parameters
+     * ----------
+     * *this : ndarray<データ数, チャンネル, 高さ, 幅>
+     * の4次元配列からなる入力データであるときのみ使用可能
+     *
+     * template<FILTER_H,FILTER_W,STRIDE,PAD>
+     * FILTER_H : フィルターの高さ
+     * FILTER_W : フィルターの幅
+     * STRIDE : ストライド
+     * PAD : パディング
+     *
+     * Returns
+     * -------
+     * col : ndarray<Type, OUT_H, OUT_W> の2次元配列
+     *
+     * OUT_H = (H + 2*PAD - FILTER_H)/STRIDE + 1
+     * OUT_W = (W + 2*PAD - FILTER_W)/STRIDE + 1
+     */
+    template <int FILTER_H, int FILTER_W, int STRIDE, int PAD>
+    auto im2col() const {
+      static_assert(sizeof...(Args) != 2,
+                    "usage : can only used by ndarray<データ数,チャンネル数, "
+                    "高さ, 幅> type");
+      constexpr int N = First;
+      constexpr int C = Second;
+      constexpr int H = Get<0, Args...>::value;
+      constexpr int W = Get<1, Args...>::value;
+      constexpr int pad_ = PAD;
+      constexpr int OUT_H = (H + 2 * PAD - FILTER_H) / STRIDE + 1;
+      constexpr int OUT_W = (W + 2 * PAD - FILTER_W) / STRIDE + 1;
+
+      //      ndarray<Type, N, C, H + pad_ * 2, W> tmp = this->pad<2, PAD,
+      //      PAD>(); ndarray<Type, N, C, H + pad_ * 2, W + pad_* 2> img =
+      //      tmp.pad<3, PAD, PAD>(); ndarray<Type, N, C, FILTER_H, FILTER_W,
+      //      OUT_H, OUT_W> col; col.fill(0);
+      //
+      //      for (int n = 0; n < N; n++)
+      //        for (int c = 0; c < C; c++)
+      //          for (int y = 0; y < FILTER_H; y++)
+      //            for (int x = 0; x < FILTER_W; x++)
+      //              for (int oy = 0, iy = y; iy < y + STRIDE * OUT_H;
+      //                   oy++, iy += STRIDE)
+      //                for (int ox = 0, ix = x; ix < x + STRIDE * OUT_W;
+      //                     ox++, ix += STRIDE)
+      //                  col.at(n, c, y, x, oy, ox) = img.at(n, c, y, x, ix,
+      //                  iy);
+      //
+      //      auto ret = col.transpose<0, 4, 5, 1, 2, 3>()
+      //                     .reshape<N * OUT_H * OUT_W, C * FILTER_H *
+      //                     FILTER_W>();
+      //      return std::move(ret);
+    }
+
+   public:
+    template <int I, int PAD_L, int PAD_R>
+    auto pad() const {
+      typename GetReshapedByIndexArray<I, PAD_L + PAD_R, First, Second,
+                                       Args...>::type ret;
+      ret.fill(0);
+
+      const int jk = size() / GetFact<I, First, Second, Args...>::value;
+      const int f = Get<I, First, Second, Args...>::value;
+
+      for (int i = 0, id = jk * PAD_L; i < size()/jk/f; i++, id += jk * (f + PAD_L + PAD_R))
+        for (int j = 0, jd = id; j < jk * f; j++, jd++)
+          ret.linerAt(jd) = linerAt(i * jk * f + j);
+
       return std::move(ret);
     }
 
