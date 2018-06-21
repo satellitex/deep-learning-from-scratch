@@ -491,7 +491,8 @@ namespace dpl {
       const int jk = size() / GetFact<I, First, Second, Args...>::value;
       const int f = Get<I, First, Second, Args...>::value;
 
-      for (int i = 0, id = jk * PAD_L; i < size()/jk/f; i++, id += jk * (f + PAD_L + PAD_R))
+      for (int i = 0, id = jk * PAD_L; i < size() / jk / f;
+           i++, id += jk * (f + PAD_L + PAD_R))
         for (int j = 0, jd = id; j < jk * f; j++, jd++)
           ret.linerAt(jd) = linerAt(i * jk * f + j);
 
