@@ -5,7 +5,7 @@
 #ifndef DEEP_LEARNING_FROM_SCRATCH_LAYER_HPP
 #define DEEP_LEARNING_FROM_SCRATCH_LAYER_HPP
 
-#include "../util.hpp"
+#include "../primitive/util.hpp"
 
 namespace dpl {
   class Layer {

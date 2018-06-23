@@ -649,3 +649,31 @@ TEST(ND_ARRAY_TEST, SLICE_3x4x5x6x7) {
   auto res1 = x1.slice<3, a, b, st>();
   ASSERT_EQ(exp1, res1);
 }
+
+TEST(ND_ARRAY_TEST, PAD_3x4x5) {
+  constexpr int a = 2, b = 3;
+  ndarray<float, 3, 4, 5> x;
+  ndarray<float, 3, 9, 5> exp;
+  ndarray<float, 3, 9, 10> exp2;
+  exp.fill(0);
+  exp2.fill(0);
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 4; j++)
+      for (int k = 0; k < 5; k++) {
+        x.at(i, j, k) = (i * 7 + j * 117 + k * 41) % 17;
+        exp.at(i, j + a, k) = x.at(i, j, k);
+        exp2.at(i, j + a, k + a) = x.at(i, j, k);
+      }
+  auto res = x.pad<1, a, b>();
+  ASSERT_EQ(exp, res);
+
+  auto res2 = res.pad<2, a, b>();
+  ASSERT_EQ(exp2, res2);
+}
+
+TEST(ND_ARRAY_TEST, IM2COL_10x8x50x60) {
+  ndarray<float, 10, 8, 20, 30> im;
+  auto col = im.im2col<3, 3, 1, 1>();
+  auto r_im = col.col2im<10, 8, 20, 30, 3, 3, 1, 1>();
+  // std::cout << col << std::endl;
+}
