@@ -22,6 +22,44 @@ namespace dpl {
         : std::logic_error("initilaize out of range") {}
   };
 
+  //===============================================================
+  // Get<I, Ints...>
+  // I : index
+  // Ints... : Args...
+  // Get<I, Ints...>::valu
+  template <int I, int... Ints>
+  struct Get;
+
+  template <int I, int F, int... Ints>
+  struct Get<I, F, Ints...> {
+    enum { value = Get<I - 1, Ints...>::value };
+  };
+
+  template <int F, int... Ints>
+  struct Get<0, F, Ints...> {
+    enum { value = F };
+  };
+  //================================================================
+
+  //================================================================
+  // GetFact
+  // I : index
+  // Ints... : Args...
+  // GetFact<I, Ints...>::value = Ints[0] * Ints[1] * ... Ints[I]
+  template <int I, int... Ints>
+  struct GetFact;
+
+  template <int I, int F, int... Ints>
+  struct GetFact<I, F, Ints...> {
+    enum { value = F * GetFact<I - 1, Ints...>::value };
+  };
+
+  template <int F, int... Ints>
+  struct GetFact<0, F, Ints...> {
+    enum { value = F };
+  };
+  //================================================================
+
   template <typename Type, int... Args>
   class ndarray;
 
@@ -47,9 +85,13 @@ namespace dpl {
 
     constexpr size_t size() const { return First; }
     constexpr auto shape() const { return std::make_tuple(First); }
-    template <int NFirst, int... NArgs>
-    ndarray<Type, NFirst, NArgs...> reshape() const {
-      ndarray<Type, NFirst, NArgs...> ret;
+    template <int... NArgs>
+    ndarray<Type, NArgs...> reshape() const {
+      static_assert(
+          GetFact<sizeof...(NArgs) - 1, NArgs...>::value == First,
+          "usage : reshape<NArgs...> number of elements of reshaped array "
+          "equal to called ndarray.");
+      ndarray<Type, NArgs...> ret;
       for (int i = 0; i < size(); i++) ret.linerAt(i) = linerAt(i);
       return std::move(ret);
     }
@@ -86,44 +128,6 @@ namespace dpl {
   class ndarray<Type, First, Second, Args...>
       : public std::array<ndarray<Type, Second, Args...>, First> {
    private:
-    //===============================================================
-    // Get<I, Ints...>
-    // I : index
-    // Ints... : Args...
-    // Get<I, Ints...>::value = Args[I]
-    template <int I, int... Ints>
-    struct Get;
-
-    template <int I, int F, int... Ints>
-    struct Get<I, F, Ints...> {
-      enum { value = Get<I - 1, Ints...>::value };
-    };
-
-    template <int F, int... Ints>
-    struct Get<0, F, Ints...> {
-      enum { value = F };
-    };
-    //================================================================
-
-    //================================================================
-    // GetFact
-    // I : index
-    // Ints... : Args...
-    // GetFact<I, Ints...>::value = Ints[0] * Ints[1] * ... Ints[I]
-    template <int I, int... Ints>
-    struct GetFact;
-
-    template <int I, int F, int... Ints>
-    struct GetFact<I, F, Ints...> {
-      enum { value = F * GetFact<I - 1, Ints...>::value };
-    };
-
-    template <int F, int... Ints>
-    struct GetFact<0, F, Ints...> {
-      enum { value = F };
-    };
-    //================================================================
-
     //================================================================
     // DimExpand<D, Dims...>
     // D : sizeof Dimentions
@@ -290,12 +294,19 @@ namespace dpl {
     constexpr auto shape() const {
       return std::make_tuple(First, Second, Args...);
     }
-    template <int NFirst, int... NArgs>
-    ndarray<Type, NFirst, NArgs...> reshape() const {
-      ndarray<Type, NFirst, NArgs...> ret;
+    template <int... NArgs>
+    ndarray<Type, NArgs...> reshape() const {
+      std::cout << "reshape!" << std::endl;
+      static_assert(
+          GetFact<sizeof...(NArgs) - 1, NArgs...>::value ==
+              GetFact<sizeof...(Args) + 1, First, Second, Args...>::value,
+          "usage : reshape<NArgs...> number of elements of reshaped array "
+          "equal to called ndarray.");
+      ndarray<Type, NArgs...> ret;
+      std::cout << "reshape : " << size() << " = " << ret.size() << std::endl;
       for (int i = 0; i < size(); i++) ret.linerAt(i) = linerAt(i);
       return std::move(ret);
-    };
+    }
 
    private:
     template <int... NArgs>
@@ -483,7 +494,53 @@ namespace dpl {
       return std::move(ret);
     }
 
-   public:
+    template <int N, int C, int H, int W, int FILTER_H, int FILTER_W,
+              int STRIDE, int PAD>
+    auto col2im() const {
+      static_assert(sizeof...(Args) == 0,
+                    "usage : can only used by ndarray<Type, number of data * "
+                    "out_h * out_w, c * filter_h * filter_w * stride * pad> ");
+      constexpr int OUT_H = (H + 2 * PAD - FILTER_H) / STRIDE + 1;
+      constexpr int OUT_W = (W + 2 * PAD - FILTER_W) / STRIDE + 1;
+
+      ndarray<Type, N, OUT_H, OUT_W, C, FILTER_H, FILTER_W> col;
+      for (int i = 0; i < col.size(); i++) col.linerAt(i) = linerAt(i);
+
+      ndarray<Type, N, C, H + PAD * 2, W + PAD * 2> img;
+      img.fill(0);
+      for (int n = 0; n < N; n++)
+        for (int c = 0; c < C; c++)
+          for (int y = 0; y < FILTER_H; y++)
+            for (int x = 0; x < FILTER_W; x++)
+              for (int oy = 0, iy = y; iy < y + STRIDE * OUT_H;
+                   oy++, iy += STRIDE)
+                for (int ox = 0, ix = x; ix < x + STRIDE * OUT_W;
+                     ox++, ix += STRIDE)
+                  img.at(n, c, iy, ix) = col.at(n, oy, ox, c, y, x);
+      auto ret = img.template slice<2, PAD, PAD + H, 1>()
+                     .template slice<3, PAD, PAD + H, 1>();
+      return std::move(ret);
+    };
+
+    //
+    //    import pdb
+    //    pdb.set_trace()
+    //
+    //    N, C, H, W = input_shape
+    //    out_h = (H + 2*pad - filter_h)//stride + 1
+    //    out_w = (W + 2*pad - filter_w)//stride + 1
+    //    col = col.reshape(N, out_h, out_w, C, filter_h, filter_w).transpose(0,
+    //    3, 4, 5, 1, 2)
+    //
+    //    img = np.zeros((N, C, H + 2*pad + stride - 1, W + 2*pad + stride - 1))
+    //    for y in range(filter_h):
+    //        y_max = y + stride*out_h
+    //    for x in range(filter_w):
+    //        x_max = x + stride*out_w
+    //    img[:, :, y:y_max:stride, x:x_max:stride] += col[:, :, y, x, :, :]
+    //
+    //    return img[:, :, pad:H + pad, pad:W + pad]
+
     template <int I, int PAD_L, int PAD_R>
     auto pad() const {
       typename GetReshapedByIndexArray<I, PAD_L + PAD_R, First, Second,
@@ -512,6 +569,11 @@ namespace dpl {
       initialize_ps_++;
       return *this;
     }
+
+    template <int Index>
+    struct GetDim {
+      enum { value = Get<Index, First, Second, Args...>::value };
+    };
 
    private:
     size_t initialize_ps_;

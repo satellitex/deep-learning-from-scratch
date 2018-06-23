@@ -672,7 +672,8 @@ TEST(ND_ARRAY_TEST, PAD_3x4x5) {
 }
 
 TEST(ND_ARRAY_TEST, IM2COL_10x8x50x60) {
-  ndarray<float,10,8,20,30> im;
-  auto col = im.im2col<3,3,1,1>();
-  //std::cout << col << std::endl;
+  ndarray<float, 10, 8, 20, 30> im;
+  auto col = im.im2col<3, 3, 1, 1>();
+  auto r_im = col.col2im<10, 8, 20, 30, 3, 3, 1, 1>();
+  // std::cout << col << std::endl;
 }
