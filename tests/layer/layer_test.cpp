@@ -11,10 +11,10 @@
 using namespace dpl;
 
 TEST(LAYER_TEST, RELU) {
+  Relu<float, 100, 100> relu;
+
   ndarray<float, 100, 100> in;
   for (int i = 0; i < in.size(); i++) in.linerAt(i) = -50 * 50 + i;
-
-  Relu<float, 100, 100> relu;
 
   auto out = relu.forward(in);
   for (int i = 0; i < out.size(); i++) {
@@ -25,4 +25,14 @@ TEST(LAYER_TEST, RELU) {
   for (int i = 0; i < dx.size(); i++) {
     ASSERT_FLOAT_EQ(out.linerAt(i) > 0.0 ? 1 : 0, dx.linerAt(i));
   }
+}
+
+TEST(LAYER_TEST, AFFINE) {
+  Affine<float, 100, 40, 60> affine;
+
+  ndarray<float, 100, 40> in;
+  auto out = affine.forward( in );
+  auto dx = affine.backward( out );
+  affine.getDw();
+  affine.getDb();
 }
