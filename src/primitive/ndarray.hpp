@@ -9,10 +9,12 @@
 #include <array>
 #include <bitset>
 #include <iostream>
+#include <random>
 #include <stdexcept>
 #include <tuple>
 #include <utility>
 #include <vector>
+#include <memory>
 
 namespace dpl {
 
@@ -69,7 +71,11 @@ namespace dpl {
   template <typename Type, int First>
   class ndarray<Type, First> : public std::array<Type, First> {
    public:
-    ndarray() : initialize_ps_(0) {}
+    ndarray() : initialize_ps_(0) {
+      std::random_device rd;
+      mt = new std::mt19937(rd());
+      score = new std::uniform_real_distribution<float>(0.0, 10.0);
+    }
     ndarray(const std::array<Type, First>& cp) : std::array<Type, First>(cp) {
       ndarray();
     }
@@ -82,6 +88,11 @@ namespace dpl {
 
     Type& linerAt(int index) { return at(index); }
     const Type& linerAt(int index) const { return at(index); }
+
+    ndarray<Type, First>& rand() {
+      for (int i = 0; i < First; i++) at(i) = (*score)(*mt);
+      return *this;
+    }
 
     constexpr size_t size() const { return First; }
     constexpr auto shape() const { return std::make_tuple(First); }
@@ -111,6 +122,8 @@ namespace dpl {
 
    private:
     size_t initialize_ps_;
+    std::mt19937* mt;
+    std::uniform_real_distribution<float>* score;
   };
 
   template <typename Type, int First>
@@ -289,6 +302,10 @@ namespace dpl {
       for (int i = 0; i < First; i++) at(i).fill(v);
       return *this;
     }
+    ndarray<Type, First, Second, Args...>& rand() {
+      for (int i = 0; i < First; i++) at(i).rand();
+      return *this;
+    };
 
     constexpr size_t size() const { return First * at(0).size(); }
     constexpr auto shape() const {
@@ -688,12 +705,6 @@ namespace dpl {
       ret.linerAt(i) = std::max(a.linerAt(i), b.linerAt(i));
     return std::move(ret);
   }
-
-  template <typename Type, int... Ints>
-  ndarray<Type, Ints...> operator<=(const ndarray<Type, Ints...>& a,
-  const Type v) {
-
-  };
 
 }  // namespace dpl
 
