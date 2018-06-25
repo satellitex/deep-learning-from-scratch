@@ -94,6 +94,65 @@ namespace dpl {
     ndarray<float, Dims...> mask;
   };
 
+  template <typename Type, int N, int C, int H, int W, int FILTER_N,
+            int FILTER_H, int FILTER_W, int STRIDE, int PAD>
+  class Convolution {
+   private:
+    struct OUT_H {
+      enum { value = (H + 2 * PAD - FILTER_H) / STRIDE + 1 };
+    };
+    struct OUT_W {
+      enum { value = (W + 2 * PAD - FILTER_W) / STRIDE + 1 };
+    };
+
+   public:
+    Convolution() {
+      w.rand();
+      w = w * (Type)sqrt(2.0 / N);
+      b.fill(0);
+    }
+
+    ndarray<Type, N, FILTER_N, OUT_H::value, OUT_W::value> forward(
+        const ndarray<Type, N, C, H, W>& input) {
+      auto col = input.template im2col<FILTER_H, FILTER_W, STRIDE, PAD>();
+      col_w = w.template reshape<FILTER_N, C * FILTER_H * FILTER_W>().T();
+
+      auto out = dot(col, col_w) + b;
+      ndarray<Type, N, FILTER_N, OUT_H::value, OUT_W::value> ret =
+          out.template reshape<N, OUT_H::value, OUT_W::value, FILTER_N>()
+              .template transpose<0, 3, 1, 2>();
+      return std::move(ret);
+    }
+
+    ndarray<Type, N, C, H, W> backward(
+        const ndarray<Type, N, FILTER_N, OUT_H::value, OUT_W::value>& dout) {
+      auto out =
+          dout.template transpose<0, 2, 3, 1>()
+              .template reshape<N * OUT_H::value * OUT_W::value, FILTER_N>();
+      db = out.template sum<0>();
+      auto tdw = dot(col.T(), out);
+      dw = tdw.template transpose<1, 0>()
+               .template reshape<FILTER_N, C, FILTER_H, FILTER_W>();
+
+      auto dcol = dot(out, col_w.T());
+      ndarray<Type, N, C, OUT_H::value, OUT_W::value> ret =
+          dcol.template col2im<N, C, H, W, FILTER_H, FILTER_W, STRIDE, PAD>();
+      return std::move(ret);
+    };
+
+   private:
+    ndarray<Type, N, C, H, W> x;
+
+    ndarray<Type, FILTER_N, C, FILTER_H, FILTER_W> w;
+    ndarray<Type, N * OUT_H::value * OUT_W::value, FILTER_N> b;
+
+    ndarray<Type, N * OUT_H::value * OUT_W::value, C * FILTER_H * FILTER_W> col;
+    ndarray<Type, C * FILTER_H * FILTER_W, FILTER_N> col_w;
+
+    ndarray<Type, FILTER_N> db;
+    ndarray<Type, FILTER_N, C, FILTER_H, FILTER_W> dw;
+  };
+
 };  // namespace dpl
 
 #endif  // DEEP_LEARNING_FROM_SCRATCH_LAYER_HPP

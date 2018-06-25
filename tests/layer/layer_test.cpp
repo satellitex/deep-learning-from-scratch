@@ -47,3 +47,11 @@ TEST(LAYER_TEST, DROPOUT) {
   auto out_f = dropout.forward(in, false);
   auto dx_f = dropout.backward(out_f);
 }
+
+TEST(LAYER_TEST, CONVOLUTION) {
+  Convolution<float, 2, 3, 28, 28, 16, 3, 3, 1, 1> conv;
+
+  ndarray<float, 2, 3, 28, 28> in;
+  auto out = conv.forward(in);
+  conv.backward(out);
+}

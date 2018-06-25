@@ -9,12 +9,12 @@
 #include <array>
 #include <bitset>
 #include <iostream>
+#include <memory>
 #include <random>
 #include <stdexcept>
 #include <tuple>
 #include <utility>
 #include <vector>
-#include <memory>
 
 namespace dpl {
 
@@ -313,14 +313,12 @@ namespace dpl {
     }
     template <int... NArgs>
     ndarray<Type, NArgs...> reshape() const {
-      std::cout << "reshape!" << std::endl;
       static_assert(
           GetFact<sizeof...(NArgs) - 1, NArgs...>::value ==
               GetFact<sizeof...(Args) + 1, First, Second, Args...>::value,
           "usage : reshape<NArgs...> number of elements of reshaped array "
           "equal to called ndarray.");
       ndarray<Type, NArgs...> ret;
-      std::cout << "reshape : " << size() << " = " << ret.size() << std::endl;
       for (int i = 0; i < size(); i++) ret.linerAt(i) = linerAt(i);
       return std::move(ret);
     }
