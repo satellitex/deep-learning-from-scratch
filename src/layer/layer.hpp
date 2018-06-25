@@ -67,6 +67,33 @@ namespace dpl {
     ndarray<Type, K> db;
   };
 
+  template <typename Type, int... Dims>
+  class Dropout {
+   public:
+    Dropout(float dropout_ratio) : dropout_ratio(dropout_ratio) {}
+
+    ndarray<Type, Dims...> forward(const ndarray<Type, Dims...>& input,
+                                   bool train_flag = true) {
+      if (train_flag) return input * (float)(1.0 - dropout_ratio);
+      ndarray<Type, Dims...> rnd;
+      rnd.rand();
+      for (int i = 0; i < rnd.size(); i++) {
+        if (rnd.linerAt(i) > dropout_ratio)
+          mask.linerAt(i) = 1.0;
+        else
+          mask.linerAt(i) = 0.0;
+      }
+      return input * mask;
+    }
+    ndarray<Type, Dims...> backward(const ndarray<Type, Dims...>& dout) {
+      return dout * mask;
+    }
+
+   private:
+    float dropout_ratio;
+    ndarray<float, Dims...> mask;
+  };
+
 };  // namespace dpl
 
 #endif  // DEEP_LEARNING_FROM_SCRATCH_LAYER_HPP
