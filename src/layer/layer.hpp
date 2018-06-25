@@ -5,13 +5,30 @@
 #ifndef DEEP_LEARNING_FROM_SCRATCH_LAYER_HPP
 #define DEEP_LEARNING_FROM_SCRATCH_LAYER_HPP
 
-#include "../primitive/util.hpp"
+#include "../primitive/primitive.hpp"
 
 namespace dpl {
-  class Layer {
-    virtual void forward(const ndarray& input, std::shared_ptr<ndarray> output) = 0;
-    virtual void backward(const ndarray& dout, std::shared_ptr<ndarray> dx) = 0;
+
+  template <typename Type, int... Dims>
+  class Relu {
+   public:
+    void forward(const ndarray<Type, Dims...>& input,
+                 ndarray<Type, Dims...>& output) {
+      for (int i = 0; i < input.size(); i++) {
+        if (input.linerAt(i) >= 0)
+          output.linerAt(i) = input.linerAt(i);
+        else
+          output.linerAt(i) = 0;
+      }
+    }
+
+    void backward(const ndarray<Type, Dims...>& dout,
+                  ndarray<Type, Dims...>& dx) {
+      for (int i = 0; i < dout.size(); i++)
+        dx.linerAt(i) = dout.linerAt(i) > 0 ? 1 : 0;
+    }
   };
+
 };  // namespace dpl
 
 #endif  // DEEP_LEARNING_FROM_SCRATCH_LAYER_HPP

@@ -689,6 +689,12 @@ namespace dpl {
     return std::move(ret);
   }
 
+  template <typename Type, int... Ints>
+  ndarray<Type, Ints...> operator<=(const ndarray<Type, Ints...>& a,
+  const Type v) {
+
+  };
+
 }  // namespace dpl
 
 #endif  // DEEP_LEARNING_FROM_SCRATCH_NDARRAY_HPP
