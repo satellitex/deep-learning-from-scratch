@@ -74,7 +74,7 @@ namespace dpl {
     ndarray() : initialize_ps_(0) {
       std::random_device rd;
       mt = new std::mt19937(rd());
-      score = new std::uniform_real_distribution<float>(0.0, 10.0);
+      score = new std::uniform_real_distribution<float>(0.0, 1.0);
     }
     ndarray(const std::array<Type, First>& cp) : std::array<Type, First>(cp) {
       ndarray();
@@ -512,9 +512,10 @@ namespace dpl {
     template <int N, int C, int H, int W, int FILTER_H, int FILTER_W,
               int STRIDE, int PAD>
     auto col2im() const {
-      static_assert(sizeof...(Args) == 0,
-                    "usage : can only used by ndarray<Type, number of data * "
-                    "out_h * out_w, c * filter_h * filter_w * stride * pad>.col2im ");
+      static_assert(
+          sizeof...(Args) == 0,
+          "usage : can only used by ndarray<Type, number of data * "
+          "out_h * out_w, c * filter_h * filter_w * stride * pad>.col2im ");
       constexpr int OUT_H = (H + 2 * PAD - FILTER_H) / STRIDE + 1;
       constexpr int OUT_W = (W + 2 * PAD - FILTER_W) / STRIDE + 1;
 
