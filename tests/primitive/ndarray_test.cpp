@@ -672,8 +672,17 @@ TEST(ND_ARRAY_TEST, PAD_3x4x5) {
 }
 
 TEST(ND_ARRAY_TEST, IM2COL_10x8x50x60) {
-  ndarray<float, 10, 8, 20, 30> im;
-  auto col = im.im2col<3, 3, 1, 1>();
-  auto r_im = col.col2im<10, 8, 20, 30, 3, 3, 1, 1>();
-  // std::cout << col << std::endl;
+  ndarray<float, 10, 8, 6, 6> im;
+  constexpr int OUT_H = (6 + 2 * 1 - 3) / 1 + 1;
+  constexpr int OUT_W = (6 + 2 * 1 - 3) / 1 + 1;
+  ndarray<float, 10 * OUT_H * OUT_W, 8 * 3 * 3> col = im.im2col<3, 3, 1, 1>();
+  ndarray<float, 10, 8, 6, 6> r_im = col.col2im<10, 8, 6, 6, 3, 3, 1, 1>();
+}
+
+TEST(ND_ARRAY_TEST, ND_RAND) {
+  ndarray<float, 10> a;
+  a.rand();
+
+  ndarray<float, 10, 10, 10> b;
+  b.rand();
 }

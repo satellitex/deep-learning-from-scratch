@@ -9,6 +9,8 @@
 #include <array>
 #include <bitset>
 #include <iostream>
+#include <memory>
+#include <random>
 #include <stdexcept>
 #include <tuple>
 #include <utility>
@@ -69,7 +71,11 @@ namespace dpl {
   template <typename Type, int First>
   class ndarray<Type, First> : public std::array<Type, First> {
    public:
-    ndarray() : initialize_ps_(0) {}
+    ndarray() : initialize_ps_(0) {
+      std::random_device rd;
+      mt = new std::mt19937(rd());
+      score = new std::uniform_real_distribution<float>(0.0, 1.0);
+    }
     ndarray(const std::array<Type, First>& cp) : std::array<Type, First>(cp) {
       ndarray();
     }
@@ -82,6 +88,11 @@ namespace dpl {
 
     Type& linerAt(int index) { return at(index); }
     const Type& linerAt(int index) const { return at(index); }
+
+    ndarray<Type, First>& rand() {
+      for (int i = 0; i < First; i++) at(i) = (*score)(*mt);
+      return *this;
+    }
 
     constexpr size_t size() const { return First; }
     constexpr auto shape() const { return std::make_tuple(First); }
@@ -111,6 +122,8 @@ namespace dpl {
 
    private:
     size_t initialize_ps_;
+    std::mt19937* mt;
+    std::uniform_real_distribution<float>* score;
   };
 
   template <typename Type, int First>
@@ -289,6 +302,10 @@ namespace dpl {
       for (int i = 0; i < First; i++) at(i).fill(v);
       return *this;
     }
+    ndarray<Type, First, Second, Args...>& rand() {
+      for (int i = 0; i < First; i++) at(i).rand();
+      return *this;
+    };
 
     constexpr size_t size() const { return First * at(0).size(); }
     constexpr auto shape() const {
@@ -296,14 +313,12 @@ namespace dpl {
     }
     template <int... NArgs>
     ndarray<Type, NArgs...> reshape() const {
-      std::cout << "reshape!" << std::endl;
       static_assert(
           GetFact<sizeof...(NArgs) - 1, NArgs...>::value ==
               GetFact<sizeof...(Args) + 1, First, Second, Args...>::value,
           "usage : reshape<NArgs...> number of elements of reshaped array "
           "equal to called ndarray.");
       ndarray<Type, NArgs...> ret;
-      std::cout << "reshape : " << size() << " = " << ret.size() << std::endl;
       for (int i = 0; i < size(); i++) ret.linerAt(i) = linerAt(i);
       return std::move(ret);
     }
@@ -452,7 +467,7 @@ namespace dpl {
      *
      * Returns
      * -------
-     * col : ndarray<Type, OUT_H, OUT_W> の2次元配列
+     * col : ndarray<Type, N * OUT_H * OUT_W, C * FILTER_H * FILTER_W> の2次元配列
      *
      * OUT_H = (H + 2*PAD - FILTER_H)/STRIDE + 1
      * OUT_W = (W + 2*PAD - FILTER_W)/STRIDE + 1
@@ -462,7 +477,7 @@ namespace dpl {
       static_assert(sizeof...(Args) == 2,
                     "usage : can only used by ndarray<Type, number of data, "
                     "number of cahnel, "
-                    "height, weight> type");
+                    "height, weight>.im2col type");
       constexpr int N = First;
       constexpr int C = Second;
       constexpr int H = Get<0, Args...>::value;
@@ -497,9 +512,10 @@ namespace dpl {
     template <int N, int C, int H, int W, int FILTER_H, int FILTER_W,
               int STRIDE, int PAD>
     auto col2im() const {
-      static_assert(sizeof...(Args) == 0,
-                    "usage : can only used by ndarray<Type, number of data * "
-                    "out_h * out_w, c * filter_h * filter_w * stride * pad> ");
+      static_assert(
+          sizeof...(Args) == 0,
+          "usage : can only used by ndarray<Type, number of data * "
+          "out_h * out_w, c * filter_h * filter_w * stride * pad>.col2im ");
       constexpr int OUT_H = (H + 2 * PAD - FILTER_H) / STRIDE + 1;
       constexpr int OUT_W = (W + 2 * PAD - FILTER_W) / STRIDE + 1;
 

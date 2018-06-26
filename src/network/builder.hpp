@@ -8,10 +8,21 @@
 #include "network.hpp"
 
 namespace dpl {
+
+  template<typename... Layers>
   class NetworkBuilder {
    private:
     Network network;
   };
+
+  // use
+  int main() {
+    NetworkBuilder< Convolution<1,1,3,3>::type,
+        Convolution
+    network.Convolution<1,1,3,3>().
+        Relu<>().
+            Convolution
+  }
 }  // namespace dpl
 
 #endif  // DEEP_LEARNING_FROM_SCRATCH_BUILDER_HPP
