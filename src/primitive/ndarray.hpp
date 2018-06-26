@@ -8,7 +8,9 @@
 #include <algorithm>
 #include <array>
 #include <bitset>
+#include <complex>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <random>
 #include <stdexcept>
@@ -92,6 +94,14 @@ namespace dpl {
     ndarray<Type, First>& rand() {
       for (int i = 0; i < First; i++) at(i) = (*score)(*mt);
       return *this;
+    }
+
+    Type max() const {
+      Type maxi = std::numeric_limits<Type>::min();
+      for (int i = 0; i < size(); i++) {
+        maxi = std::max(maxi, at(i));
+      }
+      return maxi;
     }
 
     constexpr size_t size() const { return First; }
@@ -416,6 +426,14 @@ namespace dpl {
       return std::move(ret);
     }
 
+    Type max() const {
+      Type maxi = std::numeric_limits<Type>::min();
+      for (int i = 0; i < size(); i++) {
+        maxi = std::max(maxi, linerAt(i));
+      }
+      return maxi;
+    }
+
     // sum, axis = I
     template <int I>
     auto sum() const {
@@ -467,7 +485,8 @@ namespace dpl {
      *
      * Returns
      * -------
-     * col : ndarray<Type, N * OUT_H * OUT_W, C * FILTER_H * FILTER_W> の2次元配列
+     * col : ndarray<Type, N * OUT_H * OUT_W, C * FILTER_H * FILTER_W>
+     * の2次元配列
      *
      * OUT_H = (H + 2*PAD - FILTER_H)/STRIDE + 1
      * OUT_W = (W + 2*PAD - FILTER_W)/STRIDE + 1
@@ -704,6 +723,46 @@ namespace dpl {
       ret.linerAt(i) = std::max(a.linerAt(i), b.linerAt(i));
     return std::move(ret);
   }
+
+  template <typename Type, int... Dims>
+  ndarray<Type, Dims...> exp(const ndarray<Type, Dims...>& input) {
+    ndarray<Type, Dims...> ret;
+    for (int i = 0; i < ret.size(); i++)
+      ret.linerAt(i) = std::exp(input.linerAt(i));
+    return std::move(ret);
+  };
+
+  template <typename Type, int... Ints>
+  ndarray<Type, Ints...> softmax(const ndarray<Type, Ints...>& x) {
+    return exp(x - x.max());
+  }
+
+  template <typename Type, int First, int Second>
+  ndarray<Type, First, Second> softmax(const ndarray<Type, First, Second>& x) {
+    ndarray<Type, Second, First> xt = x.T();
+    ndarray<Type, Second> xm = x.template max<0>();
+    for (int i = 0; i < Second; i++) {
+      xt.at(i) = xt.at(i) - xm.at(i);
+    }
+    ndarray<Type, Second, First> exp_x = exp(xt);
+    ndarray<Type, First> sum_exp_x = exp_x.template sum<0>();
+    ndarray<Type, Second, First> ret;
+    for (int i = 0; i < Second; i++) {
+      ret.at(i) = exp_x.at(i) / sum_exp_x;
+    }
+    return ret.T();
+  }
+
+  template <typename Type, int N, int M>
+  Type cross_entropy_error(const ndarray<Type, N, M>& input,
+                           const ndarray<Type, N, M>& teacher) {
+    auto t = teacher.template argmax<1>();
+    Type sum = 0.0;
+    for (int i = 0; i < N; i++) {
+      sum += std::log(input.at(i, t.at(i)) + 1e-7);
+    }
+    return sum / N;
+  };
 
 }  // namespace dpl
 

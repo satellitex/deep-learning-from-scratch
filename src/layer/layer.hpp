@@ -200,6 +200,32 @@ namespace dpl {
     ndarray<Type, N, C, H, W> x;
     ndarray<unsigned, N * OUT_H::value * OUT_W::value * C> arg_max;
   };
+
+  template <typename Type, int N, int M>
+  class SoftmaxWithLoss {
+   public:
+    SoftmaxWithLoss() {}
+
+    Type forward(const ndarray<Type, N, M>& input,
+                 const ndarray<Type, N, M>& teacher) {
+      y = softmax(input);
+      t = teacher;
+
+      Type loss = cross_entropy_error(y, teacher);
+      return loss;
+    };
+
+    ndarray<Type, N, M> backward(const Type dout = (Type)1) {
+      // TODO : now only one-hot-expression
+      ndarray<Type, N, M> dx = (y - t) / (Type)N;
+      return std::move(dx);
+    };
+
+   private:
+    ndarray<Type, N, M> y;
+    ndarray<Type, N, M> t;
+  };
+
 };  // namespace dpl
 
 #endif  // DEEP_LEARNING_FROM_SCRATCH_LAYER_HPP
