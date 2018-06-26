@@ -55,3 +55,11 @@ TEST(LAYER_TEST, CONVOLUTION) {
   auto out = conv.forward(in);
   conv.backward(out);
 }
+
+TEST(LAYER_TEST, POOLING) {
+  Pooling<float, 2, 3, 28, 28, 2, 2, 2> pooling;
+
+  ndarray<float, 2, 3, 28, 28> in;
+  auto out = pooling.forward(in);
+  pooling.backward(out);
+}

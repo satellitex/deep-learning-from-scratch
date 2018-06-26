@@ -153,6 +153,53 @@ namespace dpl {
     ndarray<Type, FILTER_N, C, FILTER_H, FILTER_W> dw;
   };
 
+  template <typename Type, int N, int C, int H, int W, int POOL_H, int POOL_W,
+            int STRIDE>
+  class Pooling {
+   private:
+    struct OUT_H {
+      enum { value = (H - POOL_H) / STRIDE + 1 };
+    };
+    struct OUT_W {
+      enum { value = (W - POOL_W) / STRIDE + 1 };
+    };
+
+   public:
+    ndarray<Type, N, C, OUT_H::value, OUT_W::value> forward(
+        const ndarray<Type, N, C, H, W>& input) {
+      x = input;
+      auto col_t = x.template im2col<POOL_H, POOL_W, STRIDE, 0>();
+      auto col = col_t.template reshape<N * OUT_H::value * OUT_W::value * C,
+                                        POOL_H * POOL_W>();
+
+      arg_max = col.template argmax<1>();
+      auto out = col.template max<1>();
+      ndarray<Type, N, C, OUT_H::value, OUT_W::value> ret =
+          out.template reshape<N, OUT_H::value, OUT_W::value, C>()
+              .template transpose<0, 3, 1, 2>();
+      return std::move(ret);
+    }
+
+    ndarray<Type, N, C, H, W> backward(
+        const ndarray<Type, N, C, OUT_H::value, OUT_W::value>& dout) {
+      auto out = dout.template transpose<0, 2, 3, 1>();
+
+      ndarray<Type, N * OUT_H::value * OUT_W::value * C, POOL_H * POOL_W> dmax;
+      dmax.fill(0);
+      for (int i = 0; i < arg_max.size(); i++) {
+        dmax[i][arg_max.at(i)] = dout.linerAt(i);
+      }
+      auto dcol = dmax.template reshape<N * OUT_H::value * OUT_W::value,
+                                        C * POOL_H * POOL_W>();
+      ndarray<Type, N, C, H, W> dx =
+          dcol.template col2im<N, C, H, W, POOL_H, POOL_W, STRIDE, 0>();
+      return std::move(dx);
+    };
+
+   private:
+    ndarray<Type, N, C, H, W> x;
+    ndarray<unsigned, N * OUT_H::value * OUT_W::value * C> arg_max;
+  };
 };  // namespace dpl
 
 #endif  // DEEP_LEARNING_FROM_SCRATCH_LAYER_HPP

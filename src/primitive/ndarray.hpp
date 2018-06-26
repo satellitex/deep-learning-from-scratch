@@ -477,7 +477,7 @@ namespace dpl {
       static_assert(sizeof...(Args) == 2,
                     "usage : can only used by ndarray<Type, number of data, "
                     "number of cahnel, "
-                    "height, weight> type");
+                    "height, weight>.im2col type");
       constexpr int N = First;
       constexpr int C = Second;
       constexpr int H = Get<0, Args...>::value;
@@ -514,7 +514,7 @@ namespace dpl {
     auto col2im() const {
       static_assert(sizeof...(Args) == 0,
                     "usage : can only used by ndarray<Type, number of data * "
-                    "out_h * out_w, c * filter_h * filter_w * stride * pad> ");
+                    "out_h * out_w, c * filter_h * filter_w * stride * pad>.col2im ");
       constexpr int OUT_H = (H + 2 * PAD - FILTER_H) / STRIDE + 1;
       constexpr int OUT_W = (W + 2 * PAD - FILTER_W) / STRIDE + 1;
 
