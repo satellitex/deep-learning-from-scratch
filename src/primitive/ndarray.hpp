@@ -467,7 +467,7 @@ namespace dpl {
      *
      * Returns
      * -------
-     * col : ndarray<Type, OUT_H, OUT_W> の2次元配列
+     * col : ndarray<Type, N * OUT_H * OUT_W, C * FILTER_H * FILTER_W> の2次元配列
      *
      * OUT_H = (H + 2*PAD - FILTER_H)/STRIDE + 1
      * OUT_W = (W + 2*PAD - FILTER_W)/STRIDE + 1
