@@ -7,6 +7,12 @@
 #include <algorithm>
 #include <iostream>
 #include "../src/layer/layer.hpp"
+#include "../src/network/builder.hpp"
 #include "../src/primitive/primitive.hpp"
 
-TEST(NETWORK_TEST, PRDICT) {}
+using namespace dpl;
+
+TEST(NETWORK_TEST, PRDICT) {
+  NetworkBuilder builder;
+  auto builder_ = builder.Input<50, 1, 28, 28>().Convolution<16, 3, 3, 1, 1>();
+}

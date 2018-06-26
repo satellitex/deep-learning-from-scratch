@@ -147,6 +147,7 @@ namespace dpl {
       return std::move(ret);
     };
 
+    using output = ndarray<Type, N, FILTER_N, OUT_H::value, OUT_W::value>;
    private:
     ndarray<Type, N, C, H, W> x;
 
