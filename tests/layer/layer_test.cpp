@@ -31,8 +31,8 @@ TEST(LAYER_TEST, AFFINE) {
   Affine<float, 100, 40, 60> affine;
 
   ndarray<float, 100, 40> in;
-  auto out = affine.forward(in);
-  auto dx = affine.backward(out);
+  ndarray<float, 100, 60> out = affine.forward(in);
+  ndarray<float, 100, 40> dx = affine.backward(out);
   affine.getDw();
   affine.getDb();
 }
@@ -41,25 +41,30 @@ TEST(LAYER_TEST, DROPOUT) {
   Dropout<float, 100, 20, 10> dropout(0.5);
 
   ndarray<float, 100, 20, 10> in;
-  auto out = dropout.forward(in);
-  auto dx = dropout.backward(out);
+  ndarray<float, 100, 20, 10> out = dropout.forward(in);
+  ndarray<float, 100, 20, 10> dx = dropout.backward(out);
 
-  auto out_f = dropout.forward(in, false);
-  auto dx_f = dropout.backward(out_f);
+  ndarray<float, 100, 20, 10> out_f = dropout.forward(in, false);
+  ndarray<float, 100, 20, 10> dx_f = dropout.backward(out_f);
 }
 
 TEST(LAYER_TEST, CONVOLUTION) {
   Convolution<float, 2, 3, 28, 28, 16, 3, 3, 1, 1> conv;
 
   ndarray<float, 2, 3, 28, 28> in;
-  auto out = conv.forward(in);
-  conv.backward(out);
+  constexpr int OUT_H = (28 + 2 * 1 - 3) / 1 + 1;
+  constexpr int OUT_W = (28 + 2 * 1 - 3) / 1 + 1;
+  ndarray<float, 2, 16, OUT_H, OUT_W> out = conv.forward(in);
+  ndarray<float, 2, 3, 28, 28> dx = conv.backward(out);
 }
 
 TEST(LAYER_TEST, POOLING) {
   Pooling<float, 2, 3, 28, 28, 2, 2, 2> pooling;
 
   ndarray<float, 2, 3, 28, 28> in;
-  auto out = pooling.forward(in);
-  pooling.backward(out);
+  constexpr int OUT_H = (28 - 2) / 2 + 1;
+  constexpr int OUT_W = (28 - 2) / 2 + 1;
+
+  ndarray<float, 2, 3, OUT_H, OUT_W> out = pooling.forward(in);
+  ndarray<float, 2, 3, 28, 28> dx = pooling.backward(out);
 }
