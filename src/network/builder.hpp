@@ -9,20 +9,43 @@
 
 namespace dpl {
 
-  template<typename... Layers>
+
+
+  template<class... Layers>
   class NetworkBuilder {
-   private:
-    Network network;
+
+    template<template<typename Type, int... ints>, int... params>
+        struct BuilderExpand;
+
+    template<int... Dims>
+    struct BuilderExpand<Relu<float,Dims...>> {
+      using type = NetworkBuilder<Relu<float, Dims...>, Layers...>;
+    };
+
+    template<int N, int...Dims>
+    struct BuilderExpand<Affine, N, Dims...> {
+      using type = NetworkBuilder<Affine<float, N, K, Dims...>, Layers...>;
+    };
+
+    template<int FILTER_N, int FILTER_H, int FILTER_W, int STRIDE, int PAD>
+    auto Convolution();
+
+    auto Relu {
+
+    };
   };
 
-  // use
-  int main() {
-    NetworkBuilder< Convolution<1,1,3,3>::type,
-        Convolution
-    network.Convolution<1,1,3,3>().
-        Relu<>().
-            Convolution
-  }
+
+  template<int... Dims, class... Layers>
+  class NetworkBuilder< Relu<float, Dims...>, Layers...> {
+
+  };
+
+  struct Builder {
+    using type = NetworkBuilder<N,C,H,W>::
+        Convolution<FILTER_N, FILTER_H,FILTER_W, STRIDE, PAD>::type::Relu<H,W>
+  };
+
 }  // namespace dpl
 
 #endif  // DEEP_LEARNING_FROM_SCRATCH_BUILDER_HPP
