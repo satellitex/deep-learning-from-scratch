@@ -746,11 +746,11 @@ namespace dpl {
     }
     ndarray<Type, Second, First> exp_x = exp(xt);
     ndarray<Type, First> sum_exp_x = exp_x.template sum<0>();
-    ndarray<Type, First, Second> ret;
-    for (int i = 0; i < First; i++) {
-      ret.at(i) = exp_x.at(i) / sum_exp_x.at(i);
+    ndarray<Type, Second, First> ret;
+    for (int i = 0; i < Second; i++) {
+      ret.at(i) = exp_x.at(i) / sum_exp_x;
     }
-    return std::move(ret);
+    return ret.T();
   }
 
   template <typename Type, int N, int M>

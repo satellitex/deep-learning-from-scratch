@@ -68,3 +68,12 @@ TEST(LAYER_TEST, POOLING) {
   ndarray<float, 2, 3, OUT_H, OUT_W> out = pooling.forward(in);
   ndarray<float, 2, 3, 28, 28> dx = pooling.backward(out);
 }
+
+TEST(LAYER_TEST, SOFT_MAX) {
+  SoftmaxWithLoss<float, 2, 10> last_layer;
+
+  ndarray<float, 2, 10> input;
+  ndarray<float, 2, 10> teacher;
+  float loss = last_layer.forward(input, teacher);
+  ndarray<float, 2, 10> dx = last_layer.backward();
+}
