@@ -28,6 +28,11 @@ namespace dpl {
       using type = Relu<float, Dims...>;
     };
 
+    /**
+     * Relu Layer
+     *
+     * @return NetworkBuilder adding Relu Layer.
+     */
     auto Relu() {
       NetworkBuilder_<typename ReluBuild<typename Last::output>::type, Last,
                       Layers...>
@@ -45,6 +50,12 @@ namespace dpl {
       using type = Affine<float, N, K, Dims...>;
     };
 
+    /**
+     * Affine Layer
+     *
+     * @tparam K Affine Layer output to [N][K]. So, K is output dimension.
+     * @return NetworkBuilder adding Affine Layer.
+     */
     template <int K>
     auto Affine() {
       NetworkBuilder_<typename AffineBuild<typename Last::output, K>::type,
@@ -63,6 +74,12 @@ namespace dpl {
       using type = Dropout<float, Dims...>;
     };
 
+    /**
+     * Dropout Layer
+     *
+     * @param dropout_ratio drop ratio of this Dropout layer.
+     * @return NetworkBuilder adding Dropout Layer
+     */
     auto Dropout(float dropout_ratio) {
       NetworkBuilder_<typename DropoutBuild<typename Last::output>::type, Last,
                       Layers...>
@@ -86,6 +103,16 @@ namespace dpl {
                                STRIDE, PAD>;
     };
 
+    /**
+     * Convolution Layer
+     *
+     * @tparam FILTER_N Number of Filter.
+     * @tparam FILTER_H Height of Filter.
+     * @tparam FILTER_W Width of Filter.
+     * @tparam STRIDE Stride of Filter.
+     * @tparam PAD Pad of Filter.
+     * @return NetwrokBuilder adding Convolution Layer
+     */
     template <int FILTER_N, int FILTER_H, int FILTER_W, int STRIDE, int PAD>
     auto Convolution() {
       NetworkBuilder_<
@@ -106,6 +133,14 @@ namespace dpl {
       using type = Pooling<float, N, C, H, W, POOL_H, POOL_W, STRIDE>;
     };
 
+    /**
+     * Pooling Layer
+     *
+     * @tparam POOL_H Height of Pool.
+     * @tparam POOL_W Width of Pool.
+     * @tparam STRIDE Stride of Pool.
+     * @return NetwrokBuilder adding Pooling Layer.
+     */
     template <int POOL_H, int POOL_W, int STRIDE>
     auto Pooling() {
       NetworkBuilder_<typename PoolingBuild<typename Last::output, POOL_H,
@@ -125,6 +160,11 @@ namespace dpl {
       using type = SoftmaxWithLoss<float, N, M>;
     };
 
+    /**
+     * SoftmaxWithLoss Layer
+     *
+     * @return NetworkBuillder adding SoftMaxWithLoss Layer.
+     */
     auto SoftmaxWithLoss() {
       NetworkBuilder_<
           typename SoftmaxWithLossBuild<typename Last::output>::type, Last,
@@ -156,6 +196,11 @@ namespace dpl {
       using type = Network<>;
     };
 
+    /**
+     * Build Network.
+     *
+     * @return Network including Layers.
+     */
     auto build() {
       typename NetworkBuild<Last, Layers...>::type network;
       if (!dropout_ratio_list.empty()) {
@@ -185,6 +230,12 @@ namespace dpl {
   template <int N>
   class NetworkBuilder {
    public:
+    /**
+     * Setting Network Input Paramater.
+     *
+     * @tparam Ints : Input dimention size...
+     * @return NetworkBuilder_ including InputLayer.
+     */
     template <int... Ints>
     static auto Input() {
       NetworkBuilder_<InputLayer<N, Ints...>> builder_;

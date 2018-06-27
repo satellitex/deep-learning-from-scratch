@@ -13,8 +13,7 @@
 using namespace dpl;
 
 TEST(NETWORK_TEST, PRDICT) {
-  NetworkBuilder<2> builder;
-  auto network = builder.Input<1, 28, 28>()
+  auto network = NetworkBuilder<2>::Input<1, 28, 28>()
                      .Convolution<16, 3, 3, 1, 1>()
                      .Relu()
                      .Convolution<16, 3, 3, 1, 1>()
