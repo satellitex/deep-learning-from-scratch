@@ -28,13 +28,13 @@ TEST(LAYER_TEST, RELU) {
 }
 
 TEST(LAYER_TEST, AFFINE) {
-  Affine<float, 100, 40, 60> affine;
+  Affine<float, 100, 40, 20, 10> affine;
 
-  ndarray<float, 100, 40> in;
-  ndarray<float, 100, 60> out = affine.forward(in);
-  ndarray<float, 100, 40> dx = affine.backward(out);
-  affine.getDw();
-  affine.getDb();
+  ndarray<float, 100, 20, 10> in;
+  ndarray<float, 100, 40> out = affine.forward(in);
+  ndarray<float, 100, 20, 10> dx = affine.backward(out);
+  ndarray<float, 200, 40> dw = affine.getDw();
+  ndarray<float, 40> db = affine.getDb();
 }
 
 TEST(LAYER_TEST, DROPOUT) {

@@ -19,4 +19,4 @@ jobs:
       - run:
           name: test
           command: |
-            cd /opt/build && make test
+            cd /opt/build && ulimit -s unlimited && make test

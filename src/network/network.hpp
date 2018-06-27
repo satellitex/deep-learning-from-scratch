@@ -6,16 +6,118 @@
 #define DEEP_LEARNING_FROM_SCRATCH_NETWORK_HPP
 
 #include <memory>
+#include "../layer/layer.hpp"
 #include "../primitive/primitive.hpp"
 
-using ndarray = dpl::ndarray;
-
 namespace dpl {
-  class Network {
-    virtual void predict(ndarray& input, std::shared_ptr<ndarray> output, bool train_flag) = 0;
-    virtual void loss(ndarray& input, ndarray& teacher, std::shared_ptr<ndarray> output) = 0;
-    virtual void accuracy(ndarray& input, ndarray& teacher, std::shared_ptr<ndarray> output, int batch_test) = 0;
-    virtual void gradient(ndarray& input, ndarray& teacher, std::shared_ptr<ndarray> output) = 0;
+
+  template <class... Layers>
+  class Network;
+
+  template <class First, class... Others>
+  class Network<First, Others...> {
+   public:
+    template <int... Dims>
+    auto predict(const ndarray<float, Dims...>& in) {
+      auto out = layer.forward(in);
+      return network_.predict(out);
+    }
+
+    template <class Teacher, int... Dims>
+    float loss(const ndarray<float, Dims...>& in, const Teacher& teacher) {
+      auto out = layer.forward(in);
+      return network_.loss(out, teacher);
+    }
+
+    template <int BATCH_SIZE, int N, int M, int... Dims>
+    float accuracy(const ndarray<float, N, Dims...>& in,
+                   const ndarray<float, N, M>& teacher) {
+      ndarray<float, BATCH_SIZE, Dims...> tx;
+
+      ndarray<unsigned, N> t = teacher.template argmax<1>();
+      ndarray<float, BATCH_SIZE> tt;
+
+      float acc = 0.0;
+      for (int i = 0; i < N / BATCH_SIZE; i++) {
+        for (int n = 0; n < BATCH_SIZE; n++) {
+          tx.at(n) = in.at(i * BATCH_SIZE + n);
+          tt.at(n) = t.at(i * BATCH_SIZE + n);
+        }
+        ndarray<float, BATCH_SIZE, M> y = predict(tx);
+        ndarray<unsigned, BATCH_SIZE> yy = y.template argmax<1>();
+        for (int n = 0; n < BATCH_SIZE; n++) {
+          if (yy.at(n) == tt.at(n)) acc += 1.0;
+        }
+      }
+      return acc / N;
+    };
+
+    auto backward() { return layer.backward(network_.backward()); }
+
+    template <int... Dims, int N, int M>
+    void gradient(const ndarray<float, N, Dims...>& in,
+                  const ndarray<float, N, M>& teacher) {
+      loss(in, teacher);
+      backward();
+    };
+
+    void set_dropout_ratio_(std::vector<float>::iterator now,
+                            std::vector<float>::iterator end) {
+      network_.set_dropout_ratio_(now, end);
+    }
+
+   private:
+    First layer;
+    Network<Others...> network_;
+  };
+
+  template <int... Dims, class... Others>
+  class Network<Dropout<float, Dims...>, Others...> {
+   public:
+    auto predict(const ndarray<float, Dims...>& in) {
+      auto out = layer.forward(in, false);
+      return network_.predict(out);
+    }
+
+    template <class Teacher>
+    float loss(const ndarray<float, Dims...>& in, const Teacher& teacher) {
+      auto out = layer.forward(in, true);
+      return network_.loss(out, teacher);
+    }
+
+    auto backward() { return layer.backward(network_.backward()); }
+
+    void set_dropout_ratio_(std::vector<float>::iterator now,
+                            std::vector<float>::iterator end) {
+      layer.set_dropout_ratio(*now);
+      if (now + 1 == end) return;
+      network_.set_dropout_ratio_(now + 1, end);
+    }
+
+   private:
+    Dropout<float, Dims...> layer;
+    Network<Others...> network_;
+  };
+
+  template <int N, int M>
+  class Network<SoftmaxWithLoss<float, N, M>> {
+   public:
+    ndarray<float, N, M> predict(const ndarray<float, N, M>& in) {
+      return std::move(in);
+    }
+
+    float loss(const ndarray<float, N, M>& in,
+               const ndarray<float, N, M>& teacher) {
+      return layer.forward(in, teacher);
+    }
+
+    ndarray<float, N, M> backward() { return layer.backward(); };
+
+    void set_dropout_ratio_(std::vector<float>::iterator now,
+                            std::vector<float>::iterator end) {}
+
+   private:
+    SoftmaxWithLoss<float, N, M> layer;
   };
 }  // namespace dpl
 
