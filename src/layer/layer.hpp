@@ -30,6 +30,8 @@ namespace dpl {
         ret.linerAt(i) = dout.linerAt(i) > 0 ? 1 : 0;
       return std::move(ret);
     }
+
+    using output = ndarray<Type, Dims...>;
   };
 
   template <typename Type, int N, int K, int... Dims>
@@ -62,6 +64,7 @@ namespace dpl {
     const ndarray<Type, M::value, K>& getDw() const { return dw; };
     const ndarray<Type, K>& getDb() const { return db; };
 
+    using output = ndarray<Type, N, K>;
    private:
     ndarray<Type, N, M::value> x;
     ndarray<Type, M::value, K> w;
@@ -93,6 +96,7 @@ namespace dpl {
       return dout * mask;
     }
 
+    using output = ndarray<Type, Dims...>;
    private:
     float dropout_ratio;
     ndarray<float, Dims...> mask;
@@ -204,6 +208,7 @@ namespace dpl {
       return std::move(dx);
     };
 
+    using output = ndarray<Type, N, C, OUT_H::value, OUT_W::value>;
    private:
     ndarray<Type, N, C, H, W> x;
     ndarray<unsigned, N * OUT_H::value * OUT_W::value * C> arg_max;
@@ -229,6 +234,7 @@ namespace dpl {
       return std::move(dx);
     };
 
+    using output = Type;
    private:
     ndarray<Type, N, M> y;
     ndarray<Type, N, M> t;

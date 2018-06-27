@@ -19,7 +19,7 @@ namespace dpl {
   template <class Last, class... Layers>
   class NetworkBuilder_ {
    public:
-    // ============================== Relu ================================
+    // ============================== Relu ===================================
     template <class OUT>
     struct ReluBuild;
 
@@ -29,11 +29,47 @@ namespace dpl {
     };
 
     auto Relu() {
-      NetworkBuilder_<typename ReluBuild<typename Last::output>::type,
-          Last, Layers... > builder_;
+      NetworkBuilder_<typename ReluBuild<typename Last::output>::type, Last,
+                      Layers...>
+          builder_;
       return std::move(builder_);
     }
-    // ====================================================================
+    // =======================================================================
+
+    // ============================ Affine ====================================
+    template <class OUT, int K>
+    struct AffineBuild;
+
+    template <int N, int K, int... Dims>
+    struct AffineBuild<ndarray<float, N, Dims...>, K> {
+      using type = Affine<float, N, K, Dims...>;
+    };
+
+    template <int K>
+    auto Affine() {
+      NetworkBuilder_<typename AffineBuild<typename Last::output, K>::type,
+                      Last, Layers...>
+          builder_;
+      return std::move(builder_);
+    }
+    // ========================================================================
+
+    // ============================== Dropout =================================
+    template <class OUT>
+    struct DropoutBuild;
+
+    template <int... Dims>
+    struct DropoutBuild<ndarray<float, Dims...>> {
+      using type = Dropout<float, Dims...>;
+    };
+
+    auto Dropout() {
+      NetworkBuilder_<typename DropoutBuild<typename Last::output>::type, Last,
+                      Layers...>
+          builder_;
+      return std::move(builder_);
+    }
+    // =====================================================================
 
     // =========================== Convolution =============================
     template <class OUT, int FILTER_N, int FILTER_H, int FILTER_W, int STRIDE,
@@ -57,8 +93,46 @@ namespace dpl {
           builder_;
       return std::move(builder_);
     };
-    // ====================================================================
-  };
+    // =====================================================================
+
+    // ============================= Pooling ===============================
+    template <class OUT, int POOL_H, int POOL_W, int STRIDE>
+    struct PoolingBuild;
+
+    template <int N, int C, int H, int W, int POOL_H, int POOL_W, int STRIDE>
+    struct PoolingBuild<ndarray<float, N, C, H, W>, POOL_H, POOL_W, STRIDE> {
+      using type = Pooling<float, N, C, H, W, POOL_H, POOL_W, STRIDE>;
+    };
+
+    template <int POOL_H, int POOL_W, int STRIDE>
+    auto Pooling() {
+      NetworkBuilder_<typename PoolingBuild<typename Last::output, POOL_H,
+                                            POOL_W, STRIDE>::type,
+                      Last, Layers...>
+          builder_;
+      return std::move(builder_);
+    };
+    // =====================================================================
+
+    // ======================== SoftmaxWithLoss ============================
+    template <class OUT>
+    struct SoftmaxWithLossBuild;
+
+    template <int N, int M>
+    struct SoftmaxWithLossBuild<ndarray<float, N, M>> {
+      using type = SoftmaxWithLoss<float, N, M>;
+    };
+
+    auto SoftmaxWithLoss() {
+      NetworkBuilder_<
+          typename SoftmaxWithLossBuild<typename Last::output>::type, Last,
+          Layers...>
+          builder_;
+      return std::move(builder_);
+    }
+    // =====================================================================
+
+  };  // namespace dpl
 
   class NetworkBuilder {
    public:
