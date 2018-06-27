@@ -26,4 +26,14 @@ TEST(NETWORK_TEST, PRDICT) {
                      .Dropout(0.5)
                      .SoftmaxWithLoss()
                      .build();
+
+  ndarray<float, 2, 1, 28, 28> input;
+  input.rand();
+
+  ndarray<float, 2, 10> teacher;
+  teacher.fill(0);
+  teacher.at(0).at(0) = 1;
+  teacher.at(1).at(9) = 1;
+
+  float v = network.predict(input, teacher, true);
 }

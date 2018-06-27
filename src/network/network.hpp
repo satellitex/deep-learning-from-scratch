@@ -24,10 +24,11 @@ namespace dpl {
     //    ndarray& teacher, std::shared_ptr<ndarray> output) = 0;
 
    public:
-    template <int... Dims>
-    float predict(const ndarray<float, Dims...> &in, bool train_flag) {
+    template <class Teacher, int... Dims>
+    float predict(const ndarray<float, Dims...>& in, const Teacher& teacher,
+                  bool train_flag) {
       auto out = layer.forward(in);
-      return network_.predict(out, train_flag);
+      return network_.predict(out, teacher, train_flag);
     }
 
     void set_dropout_ratio_(std::vector<float>::iterator now,
@@ -43,9 +44,11 @@ namespace dpl {
   template <int... Dims, class... Others>
   class Network<Dropout<float, Dims...>, Others...> {
    public:
-    float predict(const ndarray<float, Dims...> &in, bool train_flag) {
+    template <class Teacher>
+    float predict(const ndarray<float, Dims...>& in, const Teacher& teacher,
+                  bool train_flag) {
       auto out = layer.forward(in, train_flag);
-      return network_.predict(out, train_flag);
+      return network_.predict(out, teacher, train_flag);
     }
 
     void set_dropout_ratio_(std::vector<float>::iterator now,
@@ -58,6 +61,20 @@ namespace dpl {
    private:
     Dropout<float, Dims...> layer;
     Network<Others...> network_;
+  };
+
+  template <int N, int M>
+  class Network<SoftmaxWithLoss<float, N, M>> {
+   public:
+    float predict(const ndarray<float, N, M>& in,
+                  const ndarray<float, N, M>& teacher, bool train_flag) {
+      return layer.forward(in, teacher);
+    }
+    void set_dropout_ratio_(std::vector<float>::iterator now,
+                            std::vector<float>::iterator end) {}
+
+   private:
+    SoftmaxWithLoss<float, N, M> layer;
   };
 
   template <>
