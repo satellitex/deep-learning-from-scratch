@@ -13,17 +13,18 @@
 using namespace dpl;
 
 TEST(NETWORK_TEST, PRDICT) {
-  NetworkBuilder builder;
-  auto builder_ = builder.Input<50, 1, 28, 28>()
-                      .Convolution<16, 3, 3, 1, 1>()
-                      .Relu()
-                      .Convolution<16, 3, 3, 1, 1>()
-                      .Relu()
-                      .Pooling<2, 2, 2>()
-                      .Affine<50>()
-                      .Relu()
-                      .Dropout()
-                      .Affine<10>()
-                      .Dropout()
-                      .SoftmaxWithLoss();
+  NetworkBuilder<2> builder;
+  auto network = builder.Input<1, 28, 28>()
+                     .Convolution<16, 3, 3, 1, 1>()
+                     .Relu()
+                     .Convolution<16, 3, 3, 1, 1>()
+                     .Relu()
+                     .Pooling<2, 2, 2>()
+                     .Affine<50>()
+                     .Relu()
+                     .Dropout(0.5)
+                     .Affine<10>()
+                     .Dropout(0.5)
+                     .SoftmaxWithLoss()
+                     .build();
 }

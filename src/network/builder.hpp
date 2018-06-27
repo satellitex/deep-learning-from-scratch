@@ -63,10 +63,12 @@ namespace dpl {
       using type = Dropout<float, Dims...>;
     };
 
-    auto Dropout() {
+    auto Dropout(float dropout_ratio) {
       NetworkBuilder_<typename DropoutBuild<typename Last::output>::type, Last,
                       Layers...>
           builder_;
+      builder_.set_dropout_ratio_list_(dropout_ratio_list);
+      builder_.set_dropout_ratio_(dropout_ratio);
       return std::move(builder_);
     }
     // =====================================================================
@@ -132,13 +134,60 @@ namespace dpl {
     }
     // =====================================================================
 
+    template <class Net, class L>
+    struct NetExpand;
+
+    template <class L, class... Ls>
+    struct NetExpand<Network<Ls...>, L> {
+      using type = Network<Ls..., L>;
+    };
+
+    template <class... Ls>
+    struct NetworkBuild;
+
+    template <class F, class... Ls>
+    struct NetworkBuild<F, Ls...> {
+      using type =
+          typename NetExpand<typename NetworkBuild<Ls...>::type, F>::type;
+    };
+
+    template <int... Ints>
+    struct NetworkBuild<InputLayer<Ints...>> {
+      using type = Network<>;
+    };
+
+    auto build() {
+      typename NetworkBuild<Last, Layers...>::type network;
+      if (!dropout_ratio_list.empty()) {
+        reverse(dropout_ratio_list.begin(), dropout_ratio_list.end());
+        network.set_dropout_ratio_(dropout_ratio_list.begin(),
+                                   dropout_ratio_list.end());
+      }
+      return std::move(network);
+    }
+
+    // ========================= dropout ratio ===========================
+    void set_dropout_ratio_(float v) { dropout_ratio_list.emplace_back(v); }
+    void set_dropout_ratio_list_(std::vector<float> dropout_ratio_list) {
+      this->dropout_ratio_list = dropout_ratio_list;
+    }
+
+   private:
+    std::vector<float> dropout_ratio_list;
+
   };  // namespace dpl
 
+  /**
+   * NetworkBuilder
+   *
+   * @tparam N : batch size (if you don't use batch, N = 1)
+   */
+  template <int N>
   class NetworkBuilder {
    public:
     template <int... Ints>
     static auto Input() {
-      NetworkBuilder_<InputLayer<Ints...>> builder_;
+      NetworkBuilder_<InputLayer<N, Ints...>> builder_;
       return std::move(builder_);
     }
   };

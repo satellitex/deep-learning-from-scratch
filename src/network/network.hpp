@@ -29,13 +29,11 @@ namespace dpl {
       auto out = layer.forward(in);
       return network_.predict(out, train_flag);
     }
-    //    def predict(self, x, train_flg=False):
-    //    for layer in self.layers:
-    //    if isinstance(layer, Dropout):
-    //    x = layer.forward(x, train_flg)
-    //    else:
-    //    x = layer.forward(x)
-    //    return x
+
+    void set_dropout_ratio_(std::vector<float>::iterator now,
+                            std::vector<float>::iterator end) {
+      network_.set_dropout_ratio_(now, end);
+    }
 
    private:
     First layer;
@@ -50,6 +48,13 @@ namespace dpl {
       return network_.predict(out, train_flag);
     }
 
+    void set_dropout_ratio_(std::vector<float>::iterator now,
+                            std::vector<float>::iterator end) {
+      layer.set_dropout_ratio(*now);
+      if (now + 1 == end) return;
+      network_.set_dropout_ratio_(now + 1, end);
+    }
+
    private:
     Dropout<float, Dims...> layer;
     Network<Others...> network_;
@@ -57,7 +62,10 @@ namespace dpl {
 
   template <>
   class Network<> {
+   public:
     float predict(float out, bool train_flag) { return out; }
+    void set_dropout_ratio_(std::vector<float>::iterator now,
+                            std::vector<float>::iterator end) {}
   };
 }  // namespace dpl
 

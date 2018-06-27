@@ -65,6 +65,7 @@ namespace dpl {
     const ndarray<Type, K>& getDb() const { return db; };
 
     using output = ndarray<Type, N, K>;
+
    private:
     ndarray<Type, N, M::value> x;
     ndarray<Type, M::value, K> w;
@@ -77,6 +78,7 @@ namespace dpl {
   template <typename Type, int... Dims>
   class Dropout {
    public:
+    Dropout() {}
     Dropout(float dropout_ratio) : dropout_ratio(dropout_ratio) {}
 
     ndarray<Type, Dims...> forward(const ndarray<Type, Dims...>& input,
@@ -96,7 +98,10 @@ namespace dpl {
       return dout * mask;
     }
 
+    void set_dropout_ratio(float v) { dropout_ratio = v; }
+
     using output = ndarray<Type, Dims...>;
+
    private:
     float dropout_ratio;
     ndarray<float, Dims...> mask;
@@ -152,6 +157,7 @@ namespace dpl {
     };
 
     using output = ndarray<Type, N, FILTER_N, OUT_H::value, OUT_W::value>;
+
    private:
     ndarray<Type, N, C, H, W> x;
 
@@ -209,6 +215,7 @@ namespace dpl {
     };
 
     using output = ndarray<Type, N, C, OUT_H::value, OUT_W::value>;
+
    private:
     ndarray<Type, N, C, H, W> x;
     ndarray<unsigned, N * OUT_H::value * OUT_W::value * C> arg_max;
@@ -235,6 +242,7 @@ namespace dpl {
     };
 
     using output = Type;
+
    private:
     ndarray<Type, N, M> y;
     ndarray<Type, N, M> t;
