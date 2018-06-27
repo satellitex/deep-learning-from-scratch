@@ -24,11 +24,16 @@ namespace dpl {
     //    ndarray& teacher, std::shared_ptr<ndarray> output) = 0;
 
    public:
-    template <class Teacher, int... Dims>
-    float predict(const ndarray<float, Dims...>& in, const Teacher& teacher,
-                  bool train_flag) {
+    template <int... Dims>
+    auto predict(const ndarray<float, Dims...>& in) {
       auto out = layer.forward(in);
-      return network_.predict(out, teacher, train_flag);
+      return network_.predict(out);
+    }
+
+    template <class Teacher, int... Dims>
+    float loss(const ndarray<float, Dims...>& in, const Teacher& teacher) {
+      auto out = layer.forward(in);
+      return network_.loss(out, teacher);
     }
 
     void set_dropout_ratio_(std::vector<float>::iterator now,
@@ -44,11 +49,15 @@ namespace dpl {
   template <int... Dims, class... Others>
   class Network<Dropout<float, Dims...>, Others...> {
    public:
+    auto predict(const ndarray<float, Dims...>& in) {
+      auto out = layer.forward(in, false);
+      return network_.predict(out);
+    }
+
     template <class Teacher>
-    float predict(const ndarray<float, Dims...>& in, const Teacher& teacher,
-                  bool train_flag) {
-      auto out = layer.forward(in, train_flag);
-      return network_.predict(out, teacher, train_flag);
+    float loss(const ndarray<float, Dims...>& in, const Teacher& teacher) {
+      auto out = layer.forward(in, true);
+      return network_.loss(out, teacher);
     }
 
     void set_dropout_ratio_(std::vector<float>::iterator now,
@@ -66,10 +75,15 @@ namespace dpl {
   template <int N, int M>
   class Network<SoftmaxWithLoss<float, N, M>> {
    public:
-    float predict(const ndarray<float, N, M>& in,
-                  const ndarray<float, N, M>& teacher, bool train_flag) {
+    ndarray<float, N, M> predict(const ndarray<float, N, M>& in) {
+      return std::move(in);
+    }
+
+    float loss(const ndarray<float, N, M>& in,
+               const ndarray<float, N, M>& teacher) {
       return layer.forward(in, teacher);
     }
+
     void set_dropout_ratio_(std::vector<float>::iterator now,
                             std::vector<float>::iterator end) {}
 

@@ -35,5 +35,6 @@ TEST(NETWORK_TEST, PRDICT) {
   teacher.at(0).at(0) = 1;
   teacher.at(1).at(9) = 1;
 
-  float v = network.predict(input, teacher, true);
+  ndarray<float, 2, 10> ret = network.predict(input);
+  float v = network.loss(input, teacher);
 }
