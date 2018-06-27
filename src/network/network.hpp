@@ -76,14 +76,6 @@ namespace dpl {
    private:
     SoftmaxWithLoss<float, N, M> layer;
   };
-
-  template <>
-  class Network<> {
-   public:
-    float predict(float out, bool train_flag) { return out; }
-    void set_dropout_ratio_(std::vector<float>::iterator now,
-                            std::vector<float>::iterator end) {}
-  };
 }  // namespace dpl
 
 #endif  // DEEP_LEARNING_FROM_SCRATCH_NETWORK_HPP
