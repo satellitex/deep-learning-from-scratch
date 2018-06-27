@@ -30,7 +30,7 @@ namespace dpl {
     }
 
     template <int BATCH_SIZE, int N, int M, int... Dims>
-    float accuracy(const ndarray<float, N, Dims...>& input,
+    float accuracy(const ndarray<float, N, Dims...>& in,
                    const ndarray<float, N, M>& teacher) {
       ndarray<float, BATCH_SIZE, Dims...> tx;
 
@@ -40,7 +40,7 @@ namespace dpl {
       float acc = 0.0;
       for (int i = 0; i < N / BATCH_SIZE; i++) {
         for (int n = 0; n < BATCH_SIZE; n++) {
-          tx.at(n) = input.at(i * BATCH_SIZE + n);
+          tx.at(n) = in.at(i * BATCH_SIZE + n);
           tt.at(n) = t.at(i * BATCH_SIZE + n);
         }
         ndarray<float, BATCH_SIZE, M> y = predict(tx);
@@ -50,6 +50,15 @@ namespace dpl {
         }
       }
       return acc / N;
+    };
+
+    auto backward() { return layer.backward(network_.backward()); }
+
+    template <int... Dims, int N, int M>
+    void gradient(const ndarray<float, N, Dims...>& in,
+                  const ndarray<float, N, M>& teacher) {
+      loss(in, teacher);
+      backward();
     };
 
     void set_dropout_ratio_(std::vector<float>::iterator now,
@@ -76,6 +85,8 @@ namespace dpl {
       return network_.loss(out, teacher);
     }
 
+    auto backward() { return layer.backward(network_.backward()); }
+
     void set_dropout_ratio_(std::vector<float>::iterator now,
                             std::vector<float>::iterator end) {
       layer.set_dropout_ratio(*now);
@@ -99,6 +110,8 @@ namespace dpl {
                const ndarray<float, N, M>& teacher) {
       return layer.forward(in, teacher);
     }
+
+    ndarray<float, N, M> backward() { return layer.backward(); };
 
     void set_dropout_ratio_(std::vector<float>::iterator now,
                             std::vector<float>::iterator end) {}
