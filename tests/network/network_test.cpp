@@ -90,3 +90,50 @@ TEST(NETWORK_TEST, GRADIENT) {
 
   network.gradient(input, teacher);
 }
+
+/**
+ *     def __init__(self, input_dim=(1, 28, 28),
+                 conv_param_1 = {'filter_num':16, 'filter_size':3, 'pad':1,
+ 'stride':1}, conv_param_2 = {'filter_num':16, 'filter_size':3, 'pad':1,
+ 'stride':1}, conv_param_3 = {'filter_num':32, 'filter_size':3, 'pad':1,
+ 'stride':1}, conv_param_4 = {'filter_num':32, 'filter_size':3, 'pad':2,
+ 'stride':1}, conv_param_5 = {'filter_num':64, 'filter_size':3, 'pad':1,
+ 'stride':1}, conv_param_6 = {'filter_num':64, 'filter_size':3, 'pad':1,
+ 'stride':1}, hidden_size=50, output_size=10):
+
+ */
+
+TEST(NETWORK_TEST, DEEP_CONV_NET) {
+  auto network = NetworkBuilder<100>::Input<1, 28, 28>()
+                     .Convolution<16, 3, 3, 1, 1>()
+                     .Relu()
+                     .Convolution<16, 3, 3, 1, 1>()
+                     .Relu()
+                     .Pooling<2, 2, 2>()
+                     .Convolution<32, 3, 3, 1, 1>()
+                     .Relu()
+                     .Convolution<32, 3, 3, 1, 1>()
+                     .Relu()
+                     .Pooling<2, 2, 2>()
+                     .Convolution<64, 3, 3, 1, 1>()
+                     .Relu()
+                     .Convolution<64, 3, 3, 1, 1>()
+                     .Relu()
+                     .Pooling<2, 2, 2>()
+                     .Affine<50>()
+                     .Relu()
+                     .Dropout(0.5)
+                     .Affine<10>()
+                     .Dropout(0.5)
+                     .SoftmaxWithLoss()
+                     .build();
+
+  ndarray<float, 100, 1, 28, 28> input;
+  input.rand();
+
+  ndarray<float, 100, 10> teacher;
+  teacher.fill(0);
+  for (int i = 0; i < 100; i++) teacher.at(i).at(i % 10) = 1;
+
+  network.gradient(input, teacher);
+}
