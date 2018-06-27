@@ -16,13 +16,6 @@ namespace dpl {
 
   template <class First, class... Others>
   class Network<First, Others...> {
-    //    virtual void predict(ndarray& input, std::shared_ptr<ndarray> output,
-    //    bool train_flag) = 0; virtual void loss(ndarray& input, ndarray&
-    //    teacher, std::shared_ptr<ndarray> output) = 0; virtual void
-    //    accuracy(ndarray& input, ndarray& teacher, std::shared_ptr<ndarray>
-    //    output, int batch_test) = 0; virtual void gradient(ndarray& input,
-    //    ndarray& teacher, std::shared_ptr<ndarray> output) = 0;
-
    public:
     template <int... Dims>
     auto predict(const ndarray<float, Dims...>& in) {
@@ -35,6 +28,29 @@ namespace dpl {
       auto out = layer.forward(in);
       return network_.loss(out, teacher);
     }
+
+    template <int BATCH_SIZE, int N, int M, int... Dims>
+    float accuracy(const ndarray<float, N, Dims...>& input,
+                   const ndarray<float, N, M>& teacher) {
+      ndarray<float, BATCH_SIZE, Dims...> tx;
+
+      ndarray<unsigned, N> t = teacher.template argmax<1>();
+      ndarray<float, BATCH_SIZE> tt;
+
+      float acc = 0.0;
+      for (int i = 0; i < N / BATCH_SIZE; i++) {
+        for (int n = 0; n < BATCH_SIZE; n++) {
+          tx.at(n) = input.at(i * BATCH_SIZE + n);
+          tt.at(n) = t.at(i * BATCH_SIZE + n);
+        }
+        ndarray<float, BATCH_SIZE, M> y = predict(tx);
+        ndarray<unsigned, BATCH_SIZE> yy = y.template argmax<1>();
+        for (int n = 0; n < BATCH_SIZE; n++) {
+          if (yy.at(n) == tt.at(n)) acc += 1.0;
+        }
+      }
+      return acc / N;
+    };
 
     void set_dropout_ratio_(std::vector<float>::iterator now,
                             std::vector<float>::iterator end) {
