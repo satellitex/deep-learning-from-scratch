@@ -14,5 +14,5 @@ using namespace dpl;
 
 TEST(NETWORK_TEST, PRDICT) {
   NetworkBuilder builder;
-  auto builder_ = builder.Input<50, 1, 28, 28>().Convolution<16, 3, 3, 1, 1>();
+  auto builder_ = builder.Input<50, 1, 28, 28>().Convolution<16, 3, 3, 1, 1>().Relu();
 }

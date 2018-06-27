@@ -19,6 +19,22 @@ namespace dpl {
   template <class Last, class... Layers>
   class NetworkBuilder_ {
    public:
+    // ============================== Relu ================================
+    template <class OUT>
+    struct ReluBuild;
+
+    template <int... Dims>
+    struct ReluBuild<ndarray<float, Dims...>> {
+      using type = Relu<float, Dims...>;
+    };
+
+    auto Relu() {
+      NetworkBuilder_<typename ReluBuild<typename Last::output>::type,
+          Last, Layers... > builder_;
+      return std::move(builder_);
+    }
+    // ====================================================================
+
     // =========================== Convolution =============================
     template <class OUT, int FILTER_N, int FILTER_H, int FILTER_W, int STRIDE,
               int PAD>
@@ -37,7 +53,7 @@ namespace dpl {
       NetworkBuilder_<
           typename ConvolutionBuild<typename Last::output, FILTER_N, FILTER_H,
                                     FILTER_W, STRIDE, PAD>::type,
-          Layers...>
+          Last, Layers...>
           builder_;
       return std::move(builder_);
     };
