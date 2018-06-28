@@ -67,6 +67,14 @@ namespace dpl {
   template <typename Type, int... Args>
   class ndarray;
 
+  template <typename Type, int... Args>
+  using ndarrayPtr = std::unique_ptr<ndarray<Type, Args...>>;
+
+  template <class Type, int... Args>
+  ndarrayPtr<Type, Args...> make_ndarray_ptr() {
+    return std::move(std::make_unique<ndarray<Type, Args...>>());
+  };
+
   template <typename Type>
   class ndarray<Type> {};
 
@@ -107,13 +115,13 @@ namespace dpl {
     constexpr size_t size() const { return First; }
     constexpr auto shape() const { return std::make_tuple(First); }
     template <int... NArgs>
-    ndarray<Type, NArgs...> reshape() const {
+    ndarrayPtr<Type, NArgs...> reshape() const {
       static_assert(
           GetFact<sizeof...(NArgs) - 1, NArgs...>::value == First,
           "usage : reshape<NArgs...> number of elements of reshaped array "
           "equal to called ndarray.");
-      ndarray<Type, NArgs...> ret;
-      for (int i = 0; i < size(); i++) ret.linerAt(i) = linerAt(i);
+      auto ret = make_ndarray_ptr<Type, NArgs...>();
+      for (int i = 0; i < size(); i++) ret->linerAt(i) = linerAt(i);
       return std::move(ret);
     }
 
@@ -322,14 +330,14 @@ namespace dpl {
       return std::make_tuple(First, Second, Args...);
     }
     template <int... NArgs>
-    ndarray<Type, NArgs...> reshape() const {
+    ndarrayPtr<Type, NArgs...> reshape() const {
       static_assert(
           GetFact<sizeof...(NArgs) - 1, NArgs...>::value ==
               GetFact<sizeof...(Args) + 1, First, Second, Args...>::value,
           "usage : reshape<NArgs...> number of elements of reshaped array "
           "equal to called ndarray.");
-      ndarray<Type, NArgs...> ret;
-      for (int i = 0; i < size(); i++) ret.linerAt(i) = linerAt(i);
+      auto ret = make_ndarray_ptr<Type, NArgs...>();
+      for (int i = 0; i < size(); i++) ret->linerAt(i) = linerAt(i);
       return std::move(ret);
     }
 
@@ -351,15 +359,16 @@ namespace dpl {
 
    public:
     // transpose<I1,I2,...,IN>
-    // e.g 1) ndarray<3,4,5>.transpose<2,1,0>() -> ndarray<5,4,3>
-    // e.g 2) ndarray<5,6,7>.transpose<1,0,2>() -> ndarray<6,5,7>
+    // e.g 1) ndarray<3,4,5>.transpose<2,1,0>() -> ndarrayPtr<5,4,3>
+    // e.g 2) ndarray<5,6,7>.transpose<1,0,2>() -> ndarrayPtr<6,5,7>
     template <int... NArgs>
-    auto transpose() const {
+    std::unique_ptr<typename GetTransposedArray<NArgs...>::type> transpose()
+        const {
       static_assert(sizeof...(NArgs) == sizeof...(Args) + 2,
                     "Transpose don't match number of arguments.");
-
-      typename GetTransposedArray<NArgs...>::type ret;
-      make_transpose_<NArgs...>(ret, 0);
+      auto ret =
+          std::make_unique<typename GetTransposedArray<NArgs...>::type>();
+      make_transpose_<NArgs...>(*ret, 0);
       return std::move(ret);
     }
 
@@ -380,28 +389,34 @@ namespace dpl {
 
    public:
     // reverse transpose
-    auto T() const {
-      typename GetReversedTransposedArray<sizeof...(Args) + 2>::type ret;
-      make_reverse_transpose_<sizeof...(Args) + 2>(ret, 0);
-      return ret;
+    std::unique_ptr<
+        typename GetReversedTransposedArray<sizeof...(Args) + 2>::type>
+    T() const {
+      auto ret = std::make_unique<
+          typename GetReversedTransposedArray<sizeof...(Args) + 2>::type>();
+      make_reverse_transpose_<sizeof...(Args) + 2>(*ret, 0);
+      return std::move(ret);
     }
 
     // argmax, axis = I
     template <int I>
-    auto argmax() const {
-      typename GetDecreaseDimArray<unsigned, I, First, Second, Args...>::type
-          ret;
+    std::unique_ptr<
+        typename GetDecreaseDimArray<unsigned, I, First, Second, Args...>::type>
+    argmax() const {
+      auto ret = std::make_unique<typename GetDecreaseDimArray<
+          unsigned, I, First, Second, Args...>::type>();
       const int jk = size() / GetFact<I, First, Second, Args...>::value;
       const int f = Get<I, First, Second, Args...>::value;
-      std::bitset<GetFact<sizeof...(Args) + 1, First, Second, Args...>::value>
-          fl = 0;
-      for (int i = 0, id = 0; i < ret.size(); i++) {
-        ret.linerAt(i) = 0;
-        while (fl[id]) id++;
+      auto fl = std::make_unique<std::bitset<
+          GetFact<sizeof...(Args) + 1, First, Second, Args...>::value>>();
+      (*fl) = 0;
+      for (int i = 0, id = 0; i < ret->size(); i++) {
+        ret->linerAt(i) = 0;
+        while ((*fl)[id]) id++;
         for (int j = 0, jd = id; j < f; j++, jd += jk) {
-          fl[jd] = true;
-          if (linerAt(id + ret.linerAt(i) * jk) < linerAt(jd))
-            ret.linerAt(i) = j;
+          (*fl)[jd] = true;
+          if (linerAt(id + ret->linerAt(i) * jk) < linerAt(jd))
+            ret->linerAt(i) = j;
         }
       }
       return std::move(ret);
@@ -409,18 +424,23 @@ namespace dpl {
 
     // max, axis = I
     template <int I>
-    auto max() const {
-      typename GetDecreaseDimArray<Type, I, First, Second, Args...>::type ret;
+    std::unique_ptr<
+        typename GetDecreaseDimArray<Type, I, First, Second, Args...>::type>
+    max() const {
+      auto ret =
+          std::make_unique<typename GetDecreaseDimArray<Type, I, First, Second,
+                                                        Args...>::type>();
       const int jk = size() / GetFact<I, First, Second, Args...>::value;
       const int f = Get<I, First, Second, Args...>::value;
-      std::bitset<GetFact<sizeof...(Args) + 1, First, Second, Args...>::value>
-          fl = 0;
-      for (int i = 0, id = 0; i < ret.size(); i++) {
-        while (fl[id]) id++;
-        ret.linerAt(i) = linerAt(id);
+      auto fl = std::make_unique<std::bitset<
+          GetFact<sizeof...(Args) + 1, First, Second, Args...>::value>>();
+      (*fl) = 0;
+      for (int i = 0, id = 0; i < ret->size(); i++) {
+        while ((*fl)[id]) id++;
+        ret->linerAt(i) = linerAt(id);
         for (int j = 0, jd = id; j < f; j++, jd += jk) {
-          fl[jd] = true;
-          ret.linerAt(i) = std::max(ret.linerAt(i), linerAt(jd));
+          (*fl)[jd] = true;
+          ret->linerAt(i) = std::max(ret->linerAt(i), linerAt(jd));
         }
       }
       return std::move(ret);
@@ -437,17 +457,20 @@ namespace dpl {
     // sum, axis = I
     template <int I>
     auto sum() const {
-      typename GetDecreaseDimArray<Type, I, First, Second, Args...>::type ret;
+      auto ret =
+          std::make_unique<typename GetDecreaseDimArray<Type, I, First, Second,
+                                                        Args...>::type>();
       const int jk = size() / GetFact<I, First, Second, Args...>::value;
       const int f = Get<I, First, Second, Args...>::value;
-      std::bitset<GetFact<sizeof...(Args) + 1, First, Second, Args...>::value>
-          fl = 0;
-      for (int i = 0, id = 0; i < ret.size(); i++) {
-        while (fl[id]) id++;
-        ret.linerAt(i) = 0;
+      auto fl = std::make_unique<std::bitset<
+          GetFact<sizeof...(Args) + 1, First, Second, Args...>::value>>();
+      (*fl) = 0;
+      for (int i = 0, id = 0; i < ret->size(); i++) {
+        while ((*fl)[id]) id++;
+        ret->linerAt(i) = 0;
         for (int j = 0, jd = id; j < f; j++, jd += jk) {
-          fl[jd] = true;
-          ret.linerAt(i) += linerAt(jd);
+          (*fl)[jd] = true;
+          ret->linerAt(i) += linerAt(jd);
         }
       }
       return std::move(ret);
@@ -457,14 +480,15 @@ namespace dpl {
     template <int I, int S, int E, int ST>
     auto slice() const {
       static_assert(ST > 0, "ST must be ST > 0");
-      typename GetSlicedArray<I, (E - S) / ST, First, Second, Args...>::type
-          ret;
+      auto ret =
+          std::make_unique<typename GetSlicedArray<I, (E - S) / ST, First,
+                                                   Second, Args...>::type>();
       const int jk = size() / GetFact<I, First, Second, Args...>::value;
       const int f = Get<I, First, Second, Args...>::value;
       for (int i = 0, id = jk * S; i < size() / jk / f; i++, id += f * jk) {
         for (int j = 0; j < (E - S); j += ST) {
           for (int k = 0; k < jk; k++)
-            ret.linerAt(i * jk * ((E - S) / ST) + j / ST * jk + k) =
+            ret->linerAt(i * jk * ((E - S) / ST) + j / ST * jk + k) =
                 linerAt(id + j * jk + k);
         }
       }
@@ -504,15 +528,16 @@ namespace dpl {
       constexpr int OUT_H = (H + 2 * PAD - FILTER_H) / STRIDE + 1;
       constexpr int OUT_W = (W + 2 * PAD - FILTER_W) / STRIDE + 1;
 
-      ndarray<Type, N, C, H + PAD * 2, W + PAD * 2> img;
+      auto img = make_ndarray_ptr<Type, N, C, H + PAD * 2, W + PAD * 2>();
       for (int n = 0; n < N; n++)
         for (int c = 0; c < C; c++)
           for (int y = 0; y < H; y++)
             for (int x = 0; x < W; x++)
-              img.at(n, c, y + PAD, x + PAD) = at(n, c, y, x);
+              img->at(n, c, y + PAD, x + PAD) = at(n, c, y, x);
 
-      ndarray<Type, N, OUT_H, OUT_W, C, FILTER_H, FILTER_W> col;
-      col.fill(0);
+      auto col =
+          make_ndarray_ptr<Type, N, OUT_H, OUT_W, C, FILTER_H, FILTER_W>();
+      col->fill(0);
       for (int n = 0; n < N; n++)
         for (int c = 0; c < C; c++)
           for (int y = 0; y < FILTER_H; y++)
@@ -521,10 +546,11 @@ namespace dpl {
                    oy++, iy += STRIDE)
                 for (int ox = 0, ix = x; ix < x + STRIDE * OUT_W;
                      ox++, ix += STRIDE)
-                  col.at(n, oy, ox, c, y, x) = img.at(n, c, iy, ix);
+                  col->at(n, oy, ox, c, y, x) = img->at(n, c, iy, ix);
 
-      ndarray<Type, N * OUT_H * OUT_W, C * FILTER_H * FILTER_W> ret;
-      for (int i = 0; i < ret.size(); i++) ret.linerAt(i) = col.linerAt(i);
+      auto ret =
+          make_ndarray_ptr<Type, N * OUT_H * OUT_W, C * FILTER_H * FILTER_W>();
+      for (int i = 0; i < ret->size(); i++) ret->linerAt(i) = col->linerAt(i);
       return std::move(ret);
     }
 
@@ -538,11 +564,12 @@ namespace dpl {
       constexpr int OUT_H = (H + 2 * PAD - FILTER_H) / STRIDE + 1;
       constexpr int OUT_W = (W + 2 * PAD - FILTER_W) / STRIDE + 1;
 
-      ndarray<Type, N, OUT_H, OUT_W, C, FILTER_H, FILTER_W> col;
-      for (int i = 0; i < col.size(); i++) col.linerAt(i) = linerAt(i);
+      auto col =
+          make_ndarray_ptr<Type, N, OUT_H, OUT_W, C, FILTER_H, FILTER_W>();
+      for (int i = 0; i < col->size(); i++) col->linerAt(i) = linerAt(i);
 
-      ndarray<Type, N, C, H + PAD * 2, W + PAD * 2> img;
-      img.fill(0);
+      auto img = make_ndarray_ptr<Type, N, C, H + PAD * 2, W + PAD * 2>();
+      img->fill(0);
       for (int n = 0; n < N; n++)
         for (int c = 0; c < C; c++)
           for (int y = 0; y < FILTER_H; y++)
@@ -551,36 +578,17 @@ namespace dpl {
                    oy++, iy += STRIDE)
                 for (int ox = 0, ix = x; ix < x + STRIDE * OUT_W;
                      ox++, ix += STRIDE)
-                  img.at(n, c, iy, ix) = col.at(n, oy, ox, c, y, x);
-      auto ret = img.template slice<2, PAD, PAD + H, 1>()
-                     .template slice<3, PAD, PAD + H, 1>();
+                  img->at(n, c, iy, ix) = col->at(n, oy, ox, c, y, x);
+      auto ret = img->template slice<2, PAD, PAD + H, 1>()
+                     ->template slice<3, PAD, PAD + H, 1>();
       return std::move(ret);
     };
 
-    //
-    //    import pdb
-    //    pdb.set_trace()
-    //
-    //    N, C, H, W = input_shape
-    //    out_h = (H + 2*pad - filter_h)//stride + 1
-    //    out_w = (W + 2*pad - filter_w)//stride + 1
-    //    col = col.reshape(N, out_h, out_w, C, filter_h, filter_w).transpose(0,
-    //    3, 4, 5, 1, 2)
-    //
-    //    img = np.zeros((N, C, H + 2*pad + stride - 1, W + 2*pad + stride - 1))
-    //    for y in range(filter_h):
-    //        y_max = y + stride*out_h
-    //    for x in range(filter_w):
-    //        x_max = x + stride*out_w
-    //    img[:, :, y:y_max:stride, x:x_max:stride] += col[:, :, y, x, :, :]
-    //
-    //    return img[:, :, pad:H + pad, pad:W + pad]
-
     template <int I, int PAD_L, int PAD_R>
     auto pad() const {
-      typename GetReshapedByIndexArray<I, PAD_L + PAD_R, First, Second,
-                                       Args...>::type ret;
-      ret.fill(0);
+      auto ret = std::make_unique<typename GetReshapedByIndexArray<
+          I, PAD_L + PAD_R, First, Second, Args...>::type>();
+      ret->fill(0);
 
       const int jk = size() / GetFact<I, First, Second, Args...>::value;
       const int f = Get<I, First, Second, Args...>::value;
@@ -588,7 +596,7 @@ namespace dpl {
       for (int i = 0, id = jk * PAD_L; i < size() / jk / f;
            i++, id += jk * (f + PAD_L + PAD_R))
         for (int j = 0, jd = id; j < jk * f; j++, jd++)
-          ret.linerAt(jd) = linerAt(i * jk * f + j);
+          ret->linerAt(jd) = linerAt(i * jk * f + j);
 
       return std::move(ret);
     }
@@ -615,70 +623,70 @@ namespace dpl {
   };  // namespace dpl
 
   template <typename Type, int... Ints>
-  ndarray<Type, Ints...> operator+(const ndarray<Type, Ints...>& a,
-                                   const ndarray<Type, Ints...>& b) {
-    ndarray<Type, Ints...> ret;
-    for (int i = 0; i < ret.size(); i++)
-      ret.linerAt(i) = a.linerAt(i) + b.linerAt(i);
+  ndarrayPtr<Type, Ints...> operator+(const ndarray<Type, Ints...>& a,
+                                      const ndarray<Type, Ints...>& b) {
+    auto ret = make_ndarray_ptr<Type, Ints...>();
+    for (int i = 0; i < ret->size(); i++)
+      ret->linerAt(i) = a.linerAt(i) + b.linerAt(i);
     return std::move(ret);
   }
 
   template <typename Type, int... Ints>
-  ndarray<Type, Ints...> operator+(const ndarray<Type, Ints...>& a,
-                                   const Type& v) {
-    ndarray<Type, Ints...> ret;
-    for (int i = 0; i < ret.size(); i++) ret.linerAt(i) = a.linerAt(i) + v;
+  ndarrayPtr<Type, Ints...> operator+(const ndarray<Type, Ints...>& a,
+                                      const Type& v) {
+    auto ret = make_ndarray_ptr<Type, Ints...>();
+    for (int i = 0; i < ret->size(); i++) ret->linerAt(i) = a.linerAt(i) + v;
     return std::move(ret);
   }
 
   template <typename Type, int... Ints>
-  ndarray<Type, Ints...> operator*(const ndarray<Type, Ints...>& a,
-                                   const ndarray<Type, Ints...>& b) {
-    ndarray<Type, Ints...> ret;
-    for (int i = 0; i < ret.size(); i++)
-      ret.linerAt(i) = a.linerAt(i) * b.linerAt(i);
+  ndarrayPtr<Type, Ints...> operator*(const ndarray<Type, Ints...>& a,
+                                      const ndarray<Type, Ints...>& b) {
+    auto ret = make_ndarray_ptr<Type, Ints...>();
+    for (int i = 0; i < ret->size(); i++)
+      ret->linerAt(i) = a.linerAt(i) * b.linerAt(i);
     return std::move(ret);
   }
 
   template <typename Type, int... Ints>
-  ndarray<Type, Ints...> operator*(const ndarray<Type, Ints...>& a,
-                                   const Type& v) {
-    ndarray<Type, Ints...> ret;
-    for (int i = 0; i < ret.size(); i++) ret.linerAt(i) = a.linerAt(i) * v;
+  ndarrayPtr<Type, Ints...> operator*(const ndarray<Type, Ints...>& a,
+                                      const Type& v) {
+    auto ret = make_ndarray_ptr<Type, Ints...>();
+    for (int i = 0; i < ret->size(); i++) ret->linerAt(i) = a.linerAt(i) * v;
     return std::move(ret);
   }
 
   template <typename Type, int... Ints>
-  ndarray<Type, Ints...> operator-(const ndarray<Type, Ints...>& a,
-                                   const ndarray<Type, Ints...>& b) {
-    ndarray<Type, Ints...> ret;
-    for (int i = 0; i < ret.size(); i++)
-      ret.linerAt(i) = a.linerAt(i) - b.linerAt(i);
+  ndarrayPtr<Type, Ints...> operator-(const ndarray<Type, Ints...>& a,
+                                      const ndarray<Type, Ints...>& b) {
+    auto ret = make_ndarray_ptr<Type, Ints...>();
+    for (int i = 0; i < ret->size(); i++)
+      ret->linerAt(i) = a.linerAt(i) - b.linerAt(i);
     return std::move(ret);
   }
 
   template <typename Type, int... Ints>
-  ndarray<Type, Ints...> operator-(const ndarray<Type, Ints...>& a,
-                                   const Type& v) {
-    ndarray<Type, Ints...> ret;
-    for (int i = 0; i < ret.size(); i++) ret.linerAt(i) = a.linerAt(i) - v;
+  ndarrayPtr<Type, Ints...> operator-(const ndarray<Type, Ints...>& a,
+                                      const Type& v) {
+    auto ret = make_ndarray_ptr<Type, Ints...>();
+    for (int i = 0; i < ret->size(); i++) ret->linerAt(i) = a.linerAt(i) - v;
     return std::move(ret);
   }
 
   template <typename Type, int... Ints>
-  ndarray<Type, Ints...> operator/(const ndarray<Type, Ints...>& a,
-                                   const ndarray<Type, Ints...>& b) {
-    ndarray<Type, Ints...> ret;
-    for (int i = 0; i < ret.size(); i++)
-      ret.linerAt(i) = a.linerAt(i) / b.linerAt(i);
+  ndarrayPtr<Type, Ints...> operator/(const ndarray<Type, Ints...>& a,
+                                      const ndarray<Type, Ints...>& b) {
+    auto ret = make_ndarray_ptr<Type, Ints...>();
+    for (int i = 0; i < ret->size(); i++)
+      ret->linerAt(i) = a.linerAt(i) / b.linerAt(i);
     return std::move(ret);
   }
 
   template <typename Type, int... Ints>
-  ndarray<Type, Ints...> operator/(const ndarray<Type, Ints...>& a,
-                                   const Type& v) {
-    ndarray<Type, Ints...> ret;
-    for (int i = 0; i < ret.size(); i++) ret.linerAt(i) = a.linerAt(i) / v;
+  ndarrayPtr<Type, Ints...> operator/(const ndarray<Type, Ints...>& a,
+                                      const Type& v) {
+    auto ret = make_ndarray_ptr<Type, Ints...>();
+    for (int i = 0; i < ret->size(); i++) ret->linerAt(i) = a.linerAt(i) / v;
     return std::move(ret);
   }
 
@@ -705,52 +713,54 @@ namespace dpl {
   }
 
   template <typename Type, int First, int Second, int Third>
-  ndarray<Type, First, Third> dot(const ndarray<Type, First, Second>& a,
-                                  const ndarray<Type, Second, Third>& b) {
-    ndarray<Type, First, Third> ret;
-    ret.fill(0);
+  ndarrayPtr<Type, First, Third> dot(const ndarray<Type, First, Second>& a,
+                                     const ndarray<Type, Second, Third>& b) {
+    auto ret = make_ndarray_ptr<Type, First, Third>();
+    ret->fill(0);
     for (int i = 0; i < First; i++)
       for (int j = 0; j < Second; j++)
-        for (int k = 0; k < Third; k++) ret.at(i, k) += a.at(i, j) * b.at(j, k);
+        for (int k = 0; k < Third; k++)
+          ret->at(i, k) += a.at(i, j) * b.at(j, k);
     return std::move(ret);
   }
 
   template <typename Type, int... Ints>
-  ndarray<Type, Ints...> maximum(const ndarray<Type, Ints...>& a,
-                                 const ndarray<Type, Ints...>& b) {
-    ndarray<Type, Ints...> ret;
+  ndarrayPtr<Type, Ints...> maximum(const ndarray<Type, Ints...>& a,
+                                    const ndarray<Type, Ints...>& b) {
+    auto ret = make_ndarray_ptr<Type, Ints...>();
     for (int i = 0; i < a.size(); i++)
-      ret.linerAt(i) = std::max(a.linerAt(i), b.linerAt(i));
+      ret->linerAt(i) = std::max(a.linerAt(i), b.linerAt(i));
     return std::move(ret);
   }
 
   template <typename Type, int... Dims>
-  ndarray<Type, Dims...> exp(const ndarray<Type, Dims...>& input) {
-    ndarray<Type, Dims...> ret;
-    for (int i = 0; i < ret.size(); i++)
-      ret.linerAt(i) = std::exp(input.linerAt(i));
+  ndarrayPtr<Type, Dims...> exp(const ndarray<Type, Dims...>& input) {
+    auto ret = make_ndarray_ptr<Type, Dims...>();
+    for (int i = 0; i < ret->size(); i++)
+      ret->linerAt(i) = std::exp(input.linerAt(i));
     return std::move(ret);
   };
 
   template <typename Type, int... Ints>
-  ndarray<Type, Ints...> softmax(const ndarray<Type, Ints...>& x) {
-    return exp(x - x.max());
+  ndarrayPtr<Type, Ints...> softmax(const ndarray<Type, Ints...>& x) {
+    return std::move(exp(*(x - x.max())));
   }
 
   template <typename Type, int First, int Second>
-  ndarray<Type, First, Second> softmax(const ndarray<Type, First, Second>& x) {
-    ndarray<Type, Second, First> xt = x.T();
-    ndarray<Type, Second> xm = x.template max<0>();
+  ndarrayPtr<Type, First, Second> softmax(
+      const ndarray<Type, First, Second>& x) {
+    ndarrayPtr<Type, Second, First> xt = x.T();
+    ndarrayPtr<Type, Second> xm = x.template max<0>();
     for (int i = 0; i < Second; i++) {
-      xt.at(i) = xt.at(i) - xm.at(i);
+      xt->at(i) = *(xt->at(i) - xm->at(i));
     }
-    ndarray<Type, Second, First> exp_x = exp(xt);
-    ndarray<Type, First> sum_exp_x = exp_x.template sum<0>();
-    ndarray<Type, Second, First> ret;
+    ndarrayPtr<Type, Second, First> exp_x = exp(*xt);
+    ndarrayPtr<Type, First> sum_exp_x = exp_x->template sum<0>();
+    auto ret = make_ndarray_ptr<Type, Second, First>();
     for (int i = 0; i < Second; i++) {
-      ret.at(i) = exp_x.at(i) / sum_exp_x;
+      ret->at(i) = *(exp_x->at(i) / *sum_exp_x);
     }
-    return ret.T();
+    return std::move(ret->T());
   }
 
   template <typename Type, int N, int M>
@@ -759,7 +769,7 @@ namespace dpl {
     auto t = teacher.template argmax<1>();
     Type sum = 0.0;
     for (int i = 0; i < N; i++) {
-      sum += std::log(input.at(i, t.at(i)) + 1e-7);
+      sum += std::log(input.at(i, t->at(i)) + 1e-7);
     }
     return sum / N;
   };
