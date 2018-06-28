@@ -35,8 +35,8 @@ TEST(NETWORK_TEST, PRDICT_LOSS) {
   teacher.at(0).at(0) = 1;
   teacher.at(1).at(9) = 1;
 
-  ndarray<float, 2, 10> ret = network.predict(input);
-  float v = network.loss(input, teacher);
+  ndarrayPtr<float, 2, 10> ret = network.predict(input);
+  //  float v = network.loss(input, teacher);
 }
 
 TEST(NETWORK_TEST, ACCURACY) {
@@ -104,7 +104,7 @@ TEST(NETWORK_TEST, GRADIENT) {
  */
 
 TEST(NETWORK_TEST, DEEP_CONV_NET) {
-  auto network = NetworkBuilder<100>::Input<1, 28, 28>()
+  auto network = NetworkBuilder<10>::Input<1, 28, 28>()
                      .Convolution<16, 3, 3, 1, 1>()
                      .Relu()
                      .Convolution<16, 3, 3, 1, 1>()
@@ -128,12 +128,12 @@ TEST(NETWORK_TEST, DEEP_CONV_NET) {
                      .SoftmaxWithLoss()
                      .build();
 
-  ndarray<float, 100, 1, 28, 28> input;
+  ndarray<float, 10, 1, 28, 28> input;
   input.rand();
 
-  ndarray<float, 100, 10> teacher;
+  ndarray<float, 10, 10> teacher;
   teacher.fill(0);
-  for (int i = 0; i < 100; i++) teacher.at(i).at(i % 10) = 1;
+  for (int i = 0; i < 10; i++) teacher.at(i).at(i % 10) = 1;
 
   network.gradient(input, teacher);
 }

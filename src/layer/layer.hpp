@@ -31,7 +31,7 @@ namespace dpl {
       return std::move(ret);
     }
 
-    using output = ndarrayPtr<Type, Dims...>;
+    using output = ndarray<Type, Dims...>;
   };
 
   template <typename Type, int N, int K, int... Dims>
@@ -68,7 +68,7 @@ namespace dpl {
       return std::move(ret->template reshape<N, Dims...>());
     }
 
-    using output = ndarrayPtr<Type, N, K>;
+    using output = ndarray<Type, N, K>;
 
    private:
     ndarrayPtr<Type, N, M::value> x;
@@ -103,7 +103,7 @@ namespace dpl {
 
     void set_dropout_ratio(float v) { dropout_ratio = v; }
 
-    using output = ndarrayPtr<Type, Dims...>;
+    using output = ndarray<Type, Dims...>;
 
    private:
     float dropout_ratio;
@@ -171,7 +171,7 @@ namespace dpl {
       return std::move(ret);
     };
 
-    using output = ndarrayPtr<Type, N, FILTER_N, OUT_H::value, OUT_W::value>;
+    using output = ndarray<Type, N, FILTER_N, OUT_H::value, OUT_W::value>;
 
    private:
     ndarrayPtr<Type, N, C, H, W> x;
@@ -231,7 +231,7 @@ namespace dpl {
       return std::move(dx);
     };
 
-    using output = ndarrayPtr<Type, N, C, OUT_H::value, OUT_W::value>;
+    using output = ndarray<Type, N, C, OUT_H::value, OUT_W::value>;
 
     Pooling() {
       x = make_ndarray_ptr<Type, N, C, H, W>();

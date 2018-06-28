@@ -43,8 +43,8 @@ TEST(LAYER_TEST, DROPOUT) {
   ndarrayPtr<float, 100, 20, 10> out = dropout.forward(*in);
   ndarrayPtr<float, 100, 20, 10> dx = dropout.backward(*out);
 
-//  ndarrayPtr<float, 100, 20, 10> out_f = dropout.forward(*in, false);
-//  ndarrayPtr<float, 100, 20, 10> dx_f = dropout.backward(*out_f);
+  //  ndarrayPtr<float, 100, 20, 10> out_f = dropout.forward(*in, false);
+  //  ndarrayPtr<float, 100, 20, 10> dx_f = dropout.backward(*out_f);
 }
 
 TEST(LAYER_TEST, CONVOLUTION) {
