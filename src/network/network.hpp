@@ -66,6 +66,8 @@ namespace dpl {
       network_.set_dropout_ratio_(now, end);
     }
 
+    First& getLayer() { return layer; }
+
    private:
     First layer;
     Network<Others...> network_;
@@ -94,6 +96,8 @@ namespace dpl {
       network_.set_dropout_ratio_(now + 1, end);
     }
 
+    Dropout<float, Dims...>& getLayer() { return layer; }
+
    private:
     Dropout<float, Dims...> layer;
     Network<Others...> network_;
@@ -117,6 +121,8 @@ namespace dpl {
 
     void set_dropout_ratio_(std::vector<float>::iterator now,
                             std::vector<float>::iterator end) {}
+
+    SoftmaxWithLoss<flato, N, M>& getLayer() { return layer; }
 
    private:
     SoftmaxWithLoss<float, N, M> layer;

@@ -32,6 +32,9 @@ namespace dpl {
     }
 
     using output = ndarray<Type, Dims...>;
+
+    template <class Func>
+    void update(Func optimize) {}
   };
 
   template <typename Type, int N, int K, int... Dims>
@@ -70,6 +73,11 @@ namespace dpl {
 
     using output = ndarray<Type, N, K>;
 
+    template <class Func>
+    void update(Func optimize) {
+      optimize(w, dw);
+      optimize(b, db);
+    }
    private:
     ndarrayPtr<Type, N, M::value> x;
     ndarrayPtr<Type, M::value, K> w;
@@ -105,6 +113,8 @@ namespace dpl {
 
     using output = ndarray<Type, Dims...>;
 
+    template <class Func>
+    void update(Func optimize) {}
    private:
     float dropout_ratio;
     ndarrayPtr<float, Dims...> mask;
@@ -173,6 +183,12 @@ namespace dpl {
 
     using output = ndarray<Type, N, FILTER_N, OUT_H::value, OUT_W::value>;
 
+    template <class Func>
+    void update(Func optimize) {
+      optimize(w, dw);
+      optimize(b, db);
+    }
+
    private:
     ndarrayPtr<Type, N, C, H, W> x;
 
@@ -199,6 +215,13 @@ namespace dpl {
     };
 
    public:
+
+    Pooling() {
+      x = make_ndarray_ptr<Type, N, C, H, W>();
+      arg_max =
+          make_ndarray_ptr<unsigned, N * OUT_H::value * OUT_W::value * C>();
+    }
+
     ndarrayPtr<Type, N, C, OUT_H::value, OUT_W::value> forward(
         const ndarray<Type, N, C, H, W>& input) {
       *x = input;
@@ -233,11 +256,8 @@ namespace dpl {
 
     using output = ndarray<Type, N, C, OUT_H::value, OUT_W::value>;
 
-    Pooling() {
-      x = make_ndarray_ptr<Type, N, C, H, W>();
-      arg_max =
-          make_ndarray_ptr<unsigned, N * OUT_H::value * OUT_W::value * C>();
-    }
+    template <class Func>
+    void update(Func optimize) {}
 
    private:
     ndarrayPtr<Type, N, C, H, W> x;
@@ -268,6 +288,9 @@ namespace dpl {
     };
 
     using output = Type;
+
+    template <class Func>
+    void update(Func optimize) {}
 
    private:
     ndarrayPtr<Type, N, M> y;

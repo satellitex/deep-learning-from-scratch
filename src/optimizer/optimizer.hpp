@@ -10,13 +10,19 @@
 using ndarray = dpl::ndarray;
 
 namespace dpl {
-    class Optimizer {
-      template<class First, class... Layers>
-      void update( Network<First, Layers...>& network ) {
+  class SGD {
+    SGD();
+    SGD(float lr) : lr(lr) {}
+    template <class First, class... Layers>
+    void update(Network<First, Layers...>& network) {
+      network.getLayer().update(
+          [lr](ndarrayPtr<float, auto...>& a, ndarrayPtr<float, auto...>& b) {
+            *a = *(*a - *(*b * lr));
+          });
+    }
+   private:
+    float lr;
+  };
+}  // namespace dpl
 
-      }
-        virtual void update(std::shared_ptr<ndarray> params, const ndarray& grads) = 0;
-    };
-}
-
-#endif //DEEP_LEARNING_FROM_SCRATCH_OPTIMIZER_HPP
+#endif  // DEEP_LEARNING_FROM_SCRATCH_OPTIMIZER_HPP
