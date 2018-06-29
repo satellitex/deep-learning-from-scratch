@@ -15,5 +15,10 @@ using namespace dpl;
 TEST(LOADER_TEST, MNITS) {
   MNISTLoader mnistLoader;
   mnistLoader.download();
+}
+
+TEST(LOADER_TEST, MNIST) {
+  MNISTLoader mnistLoader;
   mnistLoader.load();
+  auto& test_img = mnistLoader.getTestImage();
 }

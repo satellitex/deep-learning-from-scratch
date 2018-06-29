@@ -18,6 +18,13 @@ namespace dpl {
 
   class MNISTLoader {
    private:
+    static constexpr int TRAIN_NUM = 60000;
+    static constexpr int TEST_NUM = 10000;
+    static constexpr int IMAGE_C = 1;
+    static constexpr int IMAGE_H = 28;
+    static constexpr int IMAGE_W = 28;
+    static constexpr int IMAGE_SIZE = 784;
+
     void download_(std::string file) {
       struct stat st;
       if (!stat(file.c_str(), &st)) {
@@ -43,25 +50,59 @@ namespace dpl {
       }
     }
 
-    void load_label_(std::string file) {
+    template <int SIZE>
+    ndarrayPtr<float, SIZE> load_label_(std::string file) {
       std::ifstream fin(file, std::ios::in | std::ios::binary);
       if (!fin) {
         std::cout << "can not open file : " << file << std::endl;
-        return;
+        return nullptr;
       }
-      while (!fin.eof()) {
-        unsigned char c;
-        fin.read((char *)&c, sizeof(unsigned char));
-        std::cout << (int)c << " ";
+
+      auto array = make_ndarray_ptr<float, SIZE>();
+
+      fin.seekg(8, std::ios_base::beg);  // offset = 8
+      for (int i = 0; i < SIZE; i++) {   // TODO 高速読み取り
+        uint8_t c;
+        fin.read((char *)&c, sizeof(c));
+        array->at(i) = (float)c;
       }
+      fin.close();
+      return std::move(array);
     }
+
+    template <int N, int C, int H, int W>
+    ndarrayPtr<float, N, C, H, W> load_image_(std::string file) {
+      std::ifstream fin(file, std::ios::in | std::ios::binary);
+      if (!fin) {
+        std::cout << "can not open file : " << file << std::endl;
+        return nullptr;
+      }
+
+      auto array = make_ndarray_ptr<float, N * C * H * W>();
+
+      fin.seekg(16, std::ios_base::beg);         // offset = 16
+      for (int i = 0; i < N * C * H * W; i++) {  // TODO 高速読み取り
+        uint8_t c;
+        fin.read((char *)&c, sizeof(c));
+        array->at(i) = (float)c;
+      }
+      fin.close();
+      return array->template reshape<N, C, H, W>();
+    };
+
+    template <int N>
+    ndarrayPtr<float, N, 10> one_hot_label_(const ndarrayPtr<float, N> &array) {
+      auto ret = make_ndarray_ptr<float, N, 10>();
+      ret->fill(0);
+      for (int i = 0; i < N; i++) ret->at(i, array->at(i)) = (float)1;
+      return std::move(ret);
+    };
 
    public:
     MNISTLoader() {
       url_base = MNIST_CONFIG_URL_BASE;
       key_files = {MNIST_CONFIG_TRAIN_IMAGES, MNIST_CONFIG_TRAIN_LABELS,
-                   MNIST_CONFIG_TEACHER_IMAGES, MNIST_CONFIG_TEACHER_LABELS};
-      dir = MNIST_CONFIG_SAVE_DIR;
+                   MNIST_CONFIG_TEST_IMAGES, MNIST_CONFIG_TEST_LABELS};
     }
 
     void download() {
@@ -71,14 +112,59 @@ namespace dpl {
     }
 
     void load() {
+      std::cout << "::download mnist data::" << std::endl;
       download();
-      load_label_(key_files[1]);
+
+      std::cout << "::load label::" << std::endl;
+      auto train_label = load_label_<TRAIN_NUM>(key_files[1]);
+      auto test_label = load_label_<TEST_NUM>(key_files[3]);
+
+      std::cout << "::load image::" << std::endl;
+      train_img =
+          load_image_<TRAIN_NUM, IMAGE_C, IMAGE_H, IMAGE_W>(key_files[0]);
+      test_img = load_image_<TEST_NUM, IMAGE_C, IMAGE_H, IMAGE_W>(key_files[2]);
+
+      {  // normalize
+        std::cout << "::normalize::" << std::endl;
+        for (int i = 0; i < train_img->size(); i++)
+          train_img->linerAt(i) = train_img->linerAt(i) / (float)255;
+        for (int i = 0; i < test_img->size(); i++)
+          test_img->linerAt(i) = test_img->linerAt(i) / (float)255;
+      }
+
+      {  // one-hot-label
+        std::cout << "::convert one-hot-label::" << std::endl;
+        train_one_hot_label = one_hot_label_(train_label);
+        test_one_hot_label = one_hot_label_(test_label);
+      }
     }
+
+    const ndarrayPtr<float, TRAIN_NUM, IMAGE_C, IMAGE_H, IMAGE_W>
+        &getTrainImage() {
+      return std::move(train_img);
+    };
+
+    const ndarrayPtr<float, TEST_NUM, IMAGE_C, IMAGE_H, IMAGE_W>
+        &getTestImage() {
+      return std::move(test_img);
+    };
+
+    const ndarrayPtr<float, TRAIN_NUM, 10> &getTrainLabel() {
+      return std::move(train_one_hot_label);
+    };
+    const ndarrayPtr<float, TEST_NUM, 10> &getTestLabel() {
+      return std::move(test_one_hot_label);
+    };
 
    private:
     std::string url_base;
     std::array<std::string, 4> key_files;
-    std::string dir;
+
+    ndarrayPtr<float, TRAIN_NUM, 10> train_one_hot_label;
+    ndarrayPtr<float, TEST_NUM, 10> test_one_hot_label;
+
+    ndarrayPtr<float, TRAIN_NUM, IMAGE_C, IMAGE_H, IMAGE_W> train_img;
+    ndarrayPtr<float, TEST_NUM, IMAGE_C, IMAGE_H, IMAGE_W> test_img;
   };
 }  // namespace dpl
 

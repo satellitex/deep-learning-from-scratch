@@ -14,19 +14,19 @@
 #endif MNIST_CONFIG_URL_BASE
 
 #ifndef MNIST_CONFIG_TRAIN_IMAGES
-#define MNIST_CONFIG_TRAIN_IMAGES "train-images-idx3-ubyte.gz"
+#define MNIST_CONFIG_TRAIN_IMAGES "train-images-idx3-ubyte"
 #endif
 
 #ifndef MNIST_CONFIG_TRAIN_LABELS
-#define MNIST_CONFIG_TRAIN_LABELS "train-labels-idx1-ubyte.gz"
+#define MNIST_CONFIG_TRAIN_LABELS "train-labels-idx1-ubyte"
 #endif MNIST_CONFIG_TRAIN_LABELS
 
-#ifndef MNIST_CONFIG_TEACHER_IMAGES
-#define MNIST_CONFIG_TEACHER_IMAGES "t10k-images-idx3-ubyte.gz"
+#ifndef MNIST_CONFIG_TEST_IMAGES
+#define MNIST_CONFIG_TEST_IMAGES "t10k-images-idx3-ubyte"
 #endif
 
-#ifndef MNIST_CONFIG_TEACHER_LABELS
-#define MNIST_CONFIG_TEACHER_LABELS "t10k-labels-idx1-ubyte.gz"
+#ifndef MNIST_CONFIG_TEST_LABELS
+#define MNIST_CONFIG_TEST_LABELS "t10k-labels-idx1-ubyte"
 #endif
 
 #endif  // DEEP_LEARNING_FROM_SCRATCH_CONFIG_HPP
