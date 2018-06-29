@@ -37,6 +37,13 @@ namespace dpl {
     void update(Func optimize) {}
   };
 
+  template <typename Type, int... Dims>
+  std::ostream& operator<<(std::ostream& os, const Relu<Type, Dims...>& layer) {
+    os << "======== Relu Layer ========" << std::endl;
+    os << "Args : " << ndarray<int, sizeof...(Dims)>({Dims...}) << std::endl;
+    return os;
+  }
+
   template <typename Type, int N, int K, int... Dims>
   class Affine {
    public:
@@ -78,7 +85,7 @@ namespace dpl {
       optimize(w, dw);
       optimize(b, db);
     }
-   private:
+
     ndarrayPtr<Type, N, M::value> x;
     ndarrayPtr<Type, M::value, K> w;
     ndarrayPtr<Type, K> b;
@@ -87,6 +94,19 @@ namespace dpl {
     ndarrayPtr<Type, K> db;
   };
 
+  template <typename Type, int N, int K, int... Dims>
+  std::ostream& operator<<(std::ostream& os,
+                           const Affine<Type, N, K, Dims...>& layer) {
+    os << "======== Affine Layer ========" << std::endl;
+    os << "Args : " << N << ", " << K << ", "
+       << ndarray<int, sizeof...(Dims)>({Dims...}) << std::endl;
+    os << "w : " << *(layer.w) << std::endl;
+    os << "dw: " << *(layer.dw) << std::endl;
+    os << "b : " << *(layer.b) << std::endl;
+    os << "db: " << *(layer.db) << std::endl;
+    return os;
+  }
+
   template <typename Type, int... Dims>
   class Dropout {
    public:
@@ -94,7 +114,7 @@ namespace dpl {
 
     ndarrayPtr<Type, Dims...> forward(const ndarray<Type, Dims...>& input,
                                       bool train_flag = true) {
-      if (train_flag) return input * (float)(1.0 - dropout_ratio);
+      if (!train_flag) return input * (float)(1.0 - dropout_ratio);
       auto rnd = make_ndarray_ptr<Type, Dims...>();
       rnd->rand();
       for (int i = 0; i < rnd->size(); i++) {
@@ -115,10 +135,20 @@ namespace dpl {
 
     template <class Func>
     void update(Func optimize) {}
-   private:
+
     float dropout_ratio;
     ndarrayPtr<float, Dims...> mask;
   };
+
+  template <typename Type, int... Dims>
+  std::ostream& operator<<(std::ostream& os,
+                           const Dropout<Type, Dims...>& layer) {
+    os << "======== Dropout Layer ========" << std::endl;
+    os << "Args : " << ndarray<int, sizeof...(Dims)>({Dims...}) << std::endl;
+    os << "dropout_ratio : " << layer.dropout_ratio << std::endl;
+    os << "mask          : " << *(layer.mask) << std::endl;
+    return os;
+  }
 
   template <typename Type, int N, int C, int H, int W, int FILTER_N,
             int FILTER_H, int FILTER_W, int STRIDE, int PAD>
@@ -133,8 +163,6 @@ namespace dpl {
 
    public:
     Convolution() {
-      x = make_ndarray_ptr<Type, N, C, H, W>();
-
       w = make_ndarray_ptr<Type, FILTER_N, C, FILTER_H, FILTER_W>();
       b = make_ndarray_ptr<Type, FILTER_N>();
 
@@ -188,10 +216,6 @@ namespace dpl {
       optimize(w, dw);
       optimize(b, db);
     }
-
-   private:
-    ndarrayPtr<Type, N, C, H, W> x;
-
     ndarrayPtr<Type, FILTER_N, C, FILTER_H, FILTER_W> w;
     ndarrayPtr<Type, FILTER_N> b;
 
@@ -202,6 +226,23 @@ namespace dpl {
     ndarrayPtr<Type, FILTER_N> db;
     ndarrayPtr<Type, FILTER_N, C, FILTER_H, FILTER_W> dw;
   };
+
+  template <typename Type, int N, int C, int H, int W, int FILTER_N,
+            int FILTER_H, int FILTER_W, int STRIDE, int PAD>
+  std::ostream& operator<<(
+      std::ostream& os, const Convolution<Type, N, C, H, W, FILTER_N, FILTER_H,
+                                          FILTER_W, STRIDE, PAD>& layer) {
+    os << "======== Convolution Layer ========" << std::endl;
+    os << "Args : "
+       << ndarray<int, 9>(
+              {N, C, H, W, FILTER_N, FILTER_H, FILTER_W, STRIDE, PAD})
+       << std::endl;
+    os << "w : " << *(layer.w) << std::endl;
+    os << "dw: " << *(layer.dw) << std::endl;
+    os << "b : " << *(layer.b) << std::endl;
+    os << "db: " << *(layer.db) << std::endl;
+    return os;
+  }
 
   template <typename Type, int N, int C, int H, int W, int POOL_H, int POOL_W,
             int STRIDE>
@@ -215,7 +256,6 @@ namespace dpl {
     };
 
    public:
-
     Pooling() {
       x = make_ndarray_ptr<Type, N, C, H, W>();
       arg_max =
@@ -264,6 +304,17 @@ namespace dpl {
     ndarrayPtr<unsigned, N * OUT_H::value * OUT_W::value * C> arg_max;
   };
 
+  template <typename Type, int N, int C, int H, int W, int POOL_H, int POOL_W,
+            int STRIDE>
+  std::ostream& operator<<(
+      std::ostream& os,
+      const Pooling<Type, N, C, H, W, POOL_H, POOL_W, STRIDE>& layer) {
+    os << "======== Pooling Layer ========" << std::endl;
+    os << "Args : " << ndarray<int, 7>({N, C, H, W, POOL_H, POOL_W, STRIDE})
+       << std::endl;
+    return os;
+  }
+
   template <typename Type, int N, int M>
   class SoftmaxWithLoss {
    public:
@@ -296,6 +347,13 @@ namespace dpl {
     ndarrayPtr<Type, N, M> y;
     ndarrayPtr<Type, N, M> t;
   };
+
+  template <typename Type, int N, int M>
+  std::ostream& operator<<(std::ostream& os, const SoftmaxWithLoss<Type, N, M>& layer) {
+    os << "======== SoftmaxWithLoss Layer ========" << std::endl;
+    os << "Args : " << N << ", " << M << std::endl;
+    return os;
+  }
 
 };  // namespace dpl
 

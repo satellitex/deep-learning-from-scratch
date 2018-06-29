@@ -37,6 +37,7 @@ namespace dpl {
       NetworkBuilder_<typename ReluBuild<typename Last::output>::type, Last,
                       Layers...>
           builder_;
+      builder_.set_dropout_ratio_list_(dropout_ratio_list);
       return std::move(builder_);
     }
     // =======================================================================
@@ -61,6 +62,7 @@ namespace dpl {
       NetworkBuilder_<typename AffineBuild<typename Last::output, K>::type,
                       Last, Layers...>
           builder_;
+      builder_.set_dropout_ratio_list_(dropout_ratio_list);
       return std::move(builder_);
     }
     // ========================================================================
@@ -120,6 +122,7 @@ namespace dpl {
                                     FILTER_W, STRIDE, PAD>::type,
           Last, Layers...>
           builder_;
+      builder_.set_dropout_ratio_list_(dropout_ratio_list);
       return std::move(builder_);
     };
     // =====================================================================
@@ -147,6 +150,7 @@ namespace dpl {
                                             POOL_W, STRIDE>::type,
                       Last, Layers...>
           builder_;
+      builder_.set_dropout_ratio_list_(dropout_ratio_list);
       return std::move(builder_);
     };
     // =====================================================================
@@ -170,6 +174,7 @@ namespace dpl {
           typename SoftmaxWithLossBuild<typename Last::output>::type, Last,
           Layers...>
           builder_;
+      builder_.set_dropout_ratio_list_(dropout_ratio_list);
       return std::move(builder_);
     }
     // =====================================================================
