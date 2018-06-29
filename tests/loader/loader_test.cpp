@@ -12,4 +12,8 @@
 
 using namespace dpl;
 
-TEST(LOADER_TEST, MNITS) { MNISTLoader mnistLoader; }
+TEST(LOADER_TEST, MNITS) {
+  MNISTLoader mnistLoader;
+  mnistLoader.download();
+  mnistLoader.load();
+}

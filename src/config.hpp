@@ -5,6 +5,10 @@
 #ifndef DEEP_LEARNING_FROM_SCRATCH_CONFIG_HPP
 #define DEEP_LEARNING_FROM_SCRATCH_CONFIG_HPP
 
+#ifndef MNIST_CONFIG_SAVE_DIR
+#define MNIST_CONFIG_SAVE_DIR "mnist"
+#endif
+
 #ifndef MNIST_CONFIG_URL_BASE
 #define MNIST_CONFIG_URL_BASE "http://yann.lecun.com/exdb/mnist/"
 #endif MNIST_CONFIG_URL_BASE
