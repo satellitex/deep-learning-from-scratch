@@ -9,6 +9,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <cstdlib>
 #include "../config.hpp"
 #include "../primitive/ndarray.hpp"
 #include "curl/curl.h"
@@ -32,6 +33,8 @@ namespace dpl {
         return;
       }
 
+      file += ".gz";
+
       CURL *curl;
       CURLcode res;
       curl = curl_easy_init();
@@ -48,6 +51,13 @@ namespace dpl {
         curl_easy_cleanup(curl);
         fclose(fp);
       }
+
+      std::string command = "gzip -d " + file;
+      std::cout << "execute : " << command << std::endl;
+      if( system(command.c_str()) == -1 )
+        std::cout << "Failed Command : " << command << std::endl;
+      else
+        std::cout << "Success Ungzip" << std::endl;
     }
 
     template <int SIZE>
