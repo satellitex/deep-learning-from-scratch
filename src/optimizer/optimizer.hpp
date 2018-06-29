@@ -11,6 +11,10 @@ using ndarray = dpl::ndarray;
 
 namespace dpl {
     class Optimizer {
+      template<class First, class... Layers>
+      void update( Network<First, Layers...>& network ) {
+
+      }
         virtual void update(std::shared_ptr<ndarray> params, const ndarray& grads) = 0;
     };
 }

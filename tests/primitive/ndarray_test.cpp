@@ -103,7 +103,7 @@ TEST(ND_ARRAY_TEST, DOT_CALC) {
   ndarray<float, 2, 4> expected_res;
   expected_res << 38, 44, 50, 56, 83, 98, 113, 128;
 
-  ASSERT_TRUE(xres == expected_res);
+  ASSERT_TRUE(*xres == expected_res);
 }
 
 TEST(ND_ARRAY_TEST, SWAP_AND_COPY) {
@@ -155,7 +155,7 @@ TEST(ND_ARRAY_TEST, RESHAPE_TEST_1_TO_3x4) {
   x << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12;
   auto nx = x.reshape<3, 4>();
   for (int i = 0, cnt = 0; i < 3; i++)
-    for (int j = 0; j < 4; j++, cnt++) ASSERT_FLOAT_EQ(x.at(cnt), nx.at(i, j));
+    for (int j = 0; j < 4; j++, cnt++) ASSERT_FLOAT_EQ(x.at(cnt), nx->at(i, j));
 }
 
 TEST(ND_ARRAY_TEST, RESHAPE_TEST_3x2x2_TO_12) {
@@ -165,7 +165,7 @@ TEST(ND_ARRAY_TEST, RESHAPE_TEST_3x2x2_TO_12) {
   for (int i = 0, cnt = 0; i < 3; i++)
     for (int j = 0; j < 2; j++)
       for (int k = 0; k < 2; k++, cnt++)
-        ASSERT_FLOAT_EQ(x.at(i, j, k), nx.at(cnt));
+        ASSERT_FLOAT_EQ(x.at(i, j, k), nx->at(cnt));
 }
 
 TEST(ND_ARRAY_TEST, RESHAPE_TEST_3x2x2_TO_4x3) {
@@ -175,7 +175,7 @@ TEST(ND_ARRAY_TEST, RESHAPE_TEST_3x2x2_TO_4x3) {
   for (int i = 0, cnt = 0; i < 3; i++)
     for (int j = 0; j < 2; j++)
       for (int k = 0; k < 2; k++, cnt++)
-        ASSERT_FLOAT_EQ(x.at(i, j, k), nx.at(cnt / 3, cnt % 3));
+        ASSERT_FLOAT_EQ(x.at(i, j, k), nx->at(cnt / 3, cnt % 3));
 }
 
 TEST(ND_ARRAY_TEST, TRANSPOSE_3x2x2) {
@@ -185,7 +185,7 @@ TEST(ND_ARRAY_TEST, TRANSPOSE_3x2x2) {
   for (int i = 0; i < 3; i++)
     for (int j = 0; j < 2; j++)
       for (int k = 0; k < 2; k++)
-        ASSERT_FLOAT_EQ(x.at(i, j, k), nx.at(k, j, i));
+        ASSERT_FLOAT_EQ(x.at(i, j, k), nx->at(k, j, i));
 }
 
 TEST(ND_ARRAY_TEST, TRANSPOSE_5x4x3x2x3) {
@@ -204,7 +204,7 @@ TEST(ND_ARRAY_TEST, TRANSPOSE_5x4x3x2x3) {
       for (int k = 0; k < 3; k++)
         for (int n = 0; n < 2; n++)
           for (int m = 0; m < 6; m++)
-            ASSERT_FLOAT_EQ(x.at(i, j, k, n, m), tx.at(m, n, k, j, i));
+            ASSERT_FLOAT_EQ(x.at(i, j, k, n, m), tx->at(m, n, k, j, i));
 
   auto tx2 = x.transpose<3, 4, 0, 2, 1>();
   for (int i = 0; i < 5; i++)
@@ -212,7 +212,7 @@ TEST(ND_ARRAY_TEST, TRANSPOSE_5x4x3x2x3) {
       for (int k = 0; k < 3; k++)
         for (int n = 0; n < 2; n++)
           for (int m = 0; m < 6; m++)
-            ASSERT_FLOAT_EQ(x.at(i, j, k, n, m), tx2.at(n, m, i, k, j));
+            ASSERT_FLOAT_EQ(x.at(i, j, k, n, m), tx2->at(n, m, i, k, j));
 }
 
 TEST(ND_ARRAY_TEST, REVERSE_TRANSPOSE_3x2x2) {
@@ -222,7 +222,7 @@ TEST(ND_ARRAY_TEST, REVERSE_TRANSPOSE_3x2x2) {
   for (int i = 0; i < 3; i++)
     for (int j = 0; j < 2; j++)
       for (int k = 0; k < 2; k++)
-        ASSERT_FLOAT_EQ(x.at(i, j, k), nx.at(k, j, i));
+        ASSERT_FLOAT_EQ(x.at(i, j, k), nx->at(k, j, i));
 }
 
 TEST(ND_ARRAY_TEST, REVERSE_TRANSPOSE_5x4x3x2x3) {
@@ -241,7 +241,7 @@ TEST(ND_ARRAY_TEST, REVERSE_TRANSPOSE_5x4x3x2x3) {
       for (int k = 0; k < 3; k++)
         for (int n = 0; n < 2; n++)
           for (int m = 0; m < 6; m++)
-            ASSERT_FLOAT_EQ(x.at(i, j, k, n, m), tx.at(m, n, k, j, i));
+            ASSERT_FLOAT_EQ(x.at(i, j, k, n, m), tx->at(m, n, k, j, i));
 }
 
 TEST(ND_ARRAY_TEST, ARGMAX_3x3x3) {
@@ -257,7 +257,7 @@ TEST(ND_ARRAY_TEST, ARGMAX_3x3x3) {
       for (int k = 0; k < 5; k++)
         if (x.at(i, j, k) > x.at(r1.at(j, k), j, k)) r1.at(j, k) = unsigned(i);
 
-  ASSERT_EQ(r1, x.argmax<0>());
+  ASSERT_EQ(r1, *x.argmax<0>());
 
   ndarray<unsigned, 3, 5> r2;
   r2.fill(0);
@@ -266,7 +266,7 @@ TEST(ND_ARRAY_TEST, ARGMAX_3x3x3) {
       for (int k = 0; k < 5; k++)
         if (x.at(i, j, k) > x.at(i, r2.at(i, k), k)) r2.at(i, k) = unsigned(j);
 
-  ASSERT_EQ(r2, x.argmax<1>());
+  ASSERT_EQ(r2, *x.argmax<1>());
 
   ndarray<unsigned, 3, 4> r3;
   r3.fill(0);
@@ -275,7 +275,7 @@ TEST(ND_ARRAY_TEST, ARGMAX_3x3x3) {
       for (int k = 0; k < 5; k++)
         if (x.at(i, j, k) > x.at(i, j, r3.at(i, j))) r3.at(i, j) = unsigned(k);
 
-  ASSERT_EQ(r3, x.argmax<2>());
+  ASSERT_EQ(r3, *x.argmax<2>());
 }
 
 TEST(ND_ARRAY_TEST, MAX_3x4x5x6) {
@@ -293,7 +293,7 @@ TEST(ND_ARRAY_TEST, MAX_3x4x5x6) {
       for (int k = 0; k < 5; k++)
         for (int n = 0; n < 6; n++)
           r1.at(j, k, n) = std::max(r1.at(j, k, n), x.at(i, j, k, n));
-  ASSERT_EQ(r1, x.max<0>());
+  ASSERT_EQ(r1, *x.max<0>());
 
   ndarray<float, 3, 5, 6> r2;
   r2.fill(-1e9);
@@ -302,7 +302,7 @@ TEST(ND_ARRAY_TEST, MAX_3x4x5x6) {
       for (int k = 0; k < 5; k++)
         for (int n = 0; n < 6; n++)
           r2.at(i, k, n) = std::max(r2.at(i, k, n), x.at(i, j, k, n));
-  ASSERT_EQ(r2, x.max<1>());
+  ASSERT_EQ(r2, *x.max<1>());
 
   ndarray<float, 3, 4, 6> r3;
   r3.fill(-1e9);
@@ -311,7 +311,7 @@ TEST(ND_ARRAY_TEST, MAX_3x4x5x6) {
       for (int k = 0; k < 5; k++)
         for (int n = 0; n < 6; n++)
           r3.at(i, j, n) = std::max(r3.at(i, j, n), x.at(i, j, k, n));
-  ASSERT_EQ(r3, x.max<2>());
+  ASSERT_EQ(r3, *x.max<2>());
 
   ndarray<float, 3, 4, 5> r4;
   r4.fill(-1e9);
@@ -320,7 +320,7 @@ TEST(ND_ARRAY_TEST, MAX_3x4x5x6) {
       for (int k = 0; k < 5; k++)
         for (int n = 0; n < 6; n++)
           r4.at(i, j, k) = std::max(r4.at(i, j, k), x.at(i, j, k, n));
-  ASSERT_EQ(r4, x.max<3>());
+  ASSERT_EQ(r4, *x.max<3>());
 }
 
 TEST(ND_ARRAY_TEST, SUM_3x4x5x6) {
@@ -337,7 +337,7 @@ TEST(ND_ARRAY_TEST, SUM_3x4x5x6) {
     for (int j = 0; j < 4; j++)
       for (int k = 0; k < 5; k++)
         for (int n = 0; n < 6; n++) r1.at(j, k, n) += x.at(i, j, k, n);
-  ASSERT_EQ(r1, x.sum<0>());
+  ASSERT_EQ(r1, *x.sum<0>());
 
   ndarray<float, 3, 5, 6> r2;
   r2.fill(0);
@@ -345,7 +345,7 @@ TEST(ND_ARRAY_TEST, SUM_3x4x5x6) {
     for (int j = 0; j < 4; j++)
       for (int k = 0; k < 5; k++)
         for (int n = 0; n < 6; n++) r2.at(i, k, n) += x.at(i, j, k, n);
-  ASSERT_EQ(r2, x.sum<1>());
+  ASSERT_EQ(r2, *x.sum<1>());
 
   ndarray<float, 3, 4, 6> r3;
   r3.fill(0);
@@ -353,7 +353,7 @@ TEST(ND_ARRAY_TEST, SUM_3x4x5x6) {
     for (int j = 0; j < 4; j++)
       for (int k = 0; k < 5; k++)
         for (int n = 0; n < 6; n++) r3.at(i, j, n) += x.at(i, j, k, n);
-  ASSERT_EQ(r3, x.sum<2>());
+  ASSERT_EQ(r3, *x.sum<2>());
 
   ndarray<float, 3, 4, 5> r4;
   r4.fill(0);
@@ -361,7 +361,7 @@ TEST(ND_ARRAY_TEST, SUM_3x4x5x6) {
     for (int j = 0; j < 4; j++)
       for (int k = 0; k < 5; k++)
         for (int n = 0; n < 6; n++) r4.at(i, j, k) += x.at(i, j, k, n);
-  ASSERT_EQ(r4, x.sum<3>());
+  ASSERT_EQ(r4, *x.sum<3>());
 }
 
 TEST(ND_ARRAY_TEST, MAXIMUM_5x4x3) {
@@ -376,7 +376,7 @@ TEST(ND_ARRAY_TEST, MAXIMUM_5x4x3) {
         y1.at(i, j, k) = (i * 11 + j * 191 + k * 71) % 37;
         exp.at(i, j, k) = std::max(x1.at(i, j, k), y1.at(i, j, k));
       }
-  ASSERT_EQ(exp, maximum(x1, y1));
+  ASSERT_EQ(exp, *maximum(x1, y1));
 }
 
 TEST(ND_ARRAY_TEST, PLUS_OPERSTOR_3x4x5) {
@@ -391,7 +391,7 @@ TEST(ND_ARRAY_TEST, PLUS_OPERSTOR_3x4x5) {
         y1.at(i, j, k) = (i * 11 + j * 191 + k * 71) % 37;
         exp.at(i, j, k) = x1.at(i, j, k) + y1.at(i, j, k);
       }
-  ASSERT_EQ(exp, x1 + y1);
+  ASSERT_EQ(exp, *(x1 + y1));
 }
 
 TEST(ND_ARRAY_TEST, PLUS_OPERSTOR_3x4x5_V) {
@@ -405,7 +405,7 @@ TEST(ND_ARRAY_TEST, PLUS_OPERSTOR_3x4x5_V) {
         x1.at(i, j, k) = (i * 7 + j * 117 + k * 41) % 37;
         exp.at(i, j, k) = x1.at(i, j, k) + v;
       }
-  ASSERT_EQ(exp, x1 + v);
+  ASSERT_EQ(exp, *(x1 + v));
 }
 
 TEST(ND_ARRAY_TEST, PLUS_OPERSTOR_11) {
@@ -418,7 +418,7 @@ TEST(ND_ARRAY_TEST, PLUS_OPERSTOR_11) {
     y1.at(i) = i * 2;
     exp.at(i) = x1.at(i) + y1.at(i);
   }
-  ASSERT_EQ(exp, x1 + y1);
+  ASSERT_EQ(exp, *(x1 + y1));
 }
 
 TEST(ND_ARRAY_TEST, PLUS_OPERSTOR_11_V) {
@@ -430,7 +430,7 @@ TEST(ND_ARRAY_TEST, PLUS_OPERSTOR_11_V) {
     x1.at(i) = i;
     exp.at(i) = x1.at(i) + v;
   }
-  ASSERT_EQ(exp, x1 + v);
+  ASSERT_EQ(exp, *(x1 + v));
 }
 
 TEST(ND_ARRAY_TEST, MULT_OPERSTOR_3x4x5) {
@@ -445,7 +445,7 @@ TEST(ND_ARRAY_TEST, MULT_OPERSTOR_3x4x5) {
         y1.at(i, j, k) = (i * 11 + j * 191 + k * 71) % 37;
         exp.at(i, j, k) = x1.at(i, j, k) * y1.at(i, j, k);
       }
-  ASSERT_EQ(exp, x1 * y1);
+  ASSERT_EQ(exp, *(x1 * y1));
 }
 
 TEST(ND_ARRAY_TEST, MULT_OPERSTOR_3x4x5_V) {
@@ -459,7 +459,7 @@ TEST(ND_ARRAY_TEST, MULT_OPERSTOR_3x4x5_V) {
         x1.at(i, j, k) = (i * 7 + j * 117 + k * 41) % 37;
         exp.at(i, j, k) = x1.at(i, j, k) * v;
       }
-  ASSERT_EQ(exp, x1 * v);
+  ASSERT_EQ(exp, *(x1 * v));
 }
 
 TEST(ND_ARRAY_TEST, MULT_OPERSTOR_11) {
@@ -472,7 +472,7 @@ TEST(ND_ARRAY_TEST, MULT_OPERSTOR_11) {
     y1.at(i) = i * 2;
     exp.at(i) = x1.at(i) * y1.at(i);
   }
-  ASSERT_EQ(exp, x1 * y1);
+  ASSERT_EQ(exp, *(x1 * y1));
 }
 
 TEST(ND_ARRAY_TEST, MULT_OPERSTOR_11_V) {
@@ -484,7 +484,7 @@ TEST(ND_ARRAY_TEST, MULT_OPERSTOR_11_V) {
     x1.at(i) = i;
     exp.at(i) = x1.at(i) * v;
   }
-  ASSERT_EQ(exp, x1 * v);
+  ASSERT_EQ(exp, *(x1 * v));
 }
 
 TEST(ND_ARRAY_TEST, MINUS_OPERSTOR_3x4x5) {
@@ -499,7 +499,7 @@ TEST(ND_ARRAY_TEST, MINUS_OPERSTOR_3x4x5) {
         y1.at(i, j, k) = (i * 11 + j * 191 + k * 71) % 37;
         exp.at(i, j, k) = x1.at(i, j, k) - y1.at(i, j, k);
       }
-  ASSERT_EQ(exp, x1 - y1);
+  ASSERT_EQ(exp, *(x1 - y1));
 }
 
 TEST(ND_ARRAY_TEST, MINUS_OPERSTOR_3x4x5_V) {
@@ -513,7 +513,7 @@ TEST(ND_ARRAY_TEST, MINUS_OPERSTOR_3x4x5_V) {
         x1.at(i, j, k) = (i * 7 + j * 117 + k * 41) % 37;
         exp.at(i, j, k) = x1.at(i, j, k) - v;
       }
-  ASSERT_EQ(exp, x1 - v);
+  ASSERT_EQ(exp, *(x1 - v));
 }
 
 TEST(ND_ARRAY_TEST, MINUS_OPERSTOR_11) {
@@ -526,7 +526,7 @@ TEST(ND_ARRAY_TEST, MINUS_OPERSTOR_11) {
     y1.at(i) = i * 2;
     exp.at(i) = x1.at(i) - y1.at(i);
   }
-  ASSERT_EQ(exp, x1 - y1);
+  ASSERT_EQ(exp, *(x1 - y1));
 }
 
 TEST(ND_ARRAY_TEST, MINUS_OPERSTOR_11_V) {
@@ -538,7 +538,7 @@ TEST(ND_ARRAY_TEST, MINUS_OPERSTOR_11_V) {
     x1.at(i) = i;
     exp.at(i) = x1.at(i) - v;
   }
-  ASSERT_EQ(exp, x1 - v);
+  ASSERT_EQ(exp, *(x1 - v));
 }
 
 TEST(ND_ARRAY_TEST, DIV_OPERSTOR_3x4x5) {
@@ -553,7 +553,7 @@ TEST(ND_ARRAY_TEST, DIV_OPERSTOR_3x4x5) {
         y1.at(i, j, k) = (i * 11 + j * 191 + k * 71) % 37 + 1;
         exp.at(i, j, k) = x1.at(i, j, k) / y1.at(i, j, k);
       }
-  ASSERT_EQ(exp, x1 / y1);
+  ASSERT_EQ(exp, *(x1 / y1));
 }
 
 TEST(ND_ARRAY_TEST, DIV_OPERSTOR_3x4x5_V) {
@@ -567,7 +567,7 @@ TEST(ND_ARRAY_TEST, DIV_OPERSTOR_3x4x5_V) {
         x1.at(i, j, k) = (i * 7 + j * 117 + k * 41) % 37 + 1;
         exp.at(i, j, k) = x1.at(i, j, k) / v;
       }
-  ASSERT_EQ(exp, x1 / v);
+  ASSERT_EQ(exp, *(x1 / v));
 }
 
 TEST(ND_ARRAY_TEST, DIV_OPERSTOR_11) {
@@ -580,7 +580,7 @@ TEST(ND_ARRAY_TEST, DIV_OPERSTOR_11) {
     y1.at(i) = (i + 1) * 2;
     exp.at(i) = x1.at(i) / y1.at(i);
   }
-  ASSERT_EQ(exp, x1 / y1);
+  ASSERT_EQ(exp, *(x1 / y1));
 }
 
 TEST(ND_ARRAY_TEST, DIV_OPERSTOR_11_V) {
@@ -592,7 +592,7 @@ TEST(ND_ARRAY_TEST, DIV_OPERSTOR_11_V) {
     x1.at(i) = (i + 1);
     exp.at(i) = x1.at(i) / v;
   }
-  ASSERT_EQ(exp, x1 / v);
+  ASSERT_EQ(exp, *(x1 / v));
 }
 
 TEST(ND_ARRAY_TEST, SLICE_3x4x5) {
@@ -617,16 +617,16 @@ TEST(ND_ARRAY_TEST, SLICE_3x4x5) {
       }
 
   auto res1 = x1.slice<0, a, b, 1>();
-  ASSERT_EQ(exp1, res1);
+  ASSERT_EQ(exp1, *res1);
 
   auto res2 = x1.slice<1, c, d, 1>();
-  ASSERT_EQ(exp2, res2);
+  ASSERT_EQ(exp2, *res2);
 
   auto res3 = x1.slice<2, e, f, 1>();
-  ASSERT_EQ(exp3, res3);
+  ASSERT_EQ(exp3, *res3);
 
   auto res4 = x1.slice<1, 0, 4, 2>();
-  ASSERT_EQ(exp4, res4);
+  ASSERT_EQ(exp4, *res4);
 }
 
 TEST(ND_ARRAY_TEST, SLICE_3x4x5x6x7) {
@@ -647,7 +647,7 @@ TEST(ND_ARRAY_TEST, SLICE_3x4x5x6x7) {
           }
 
   auto res1 = x1.slice<3, a, b, st>();
-  ASSERT_EQ(exp1, res1);
+  ASSERT_EQ(exp1, *res1);
 }
 
 TEST(ND_ARRAY_TEST, PAD_3x4x5) {
@@ -665,18 +665,19 @@ TEST(ND_ARRAY_TEST, PAD_3x4x5) {
         exp2.at(i, j + a, k + a) = x.at(i, j, k);
       }
   auto res = x.pad<1, a, b>();
-  ASSERT_EQ(exp, res);
+  ASSERT_EQ(exp, *res);
 
-  auto res2 = res.pad<2, a, b>();
-  ASSERT_EQ(exp2, res2);
+  auto res2 = res->pad<2, a, b>();
+  ASSERT_EQ(exp2, *res2);
 }
 
 TEST(ND_ARRAY_TEST, IM2COL_10x8x50x60) {
   ndarray<float, 10, 8, 6, 6> im;
   constexpr int OUT_H = (6 + 2 * 1 - 3) / 1 + 1;
   constexpr int OUT_W = (6 + 2 * 1 - 3) / 1 + 1;
-  ndarray<float, 10 * OUT_H * OUT_W, 8 * 3 * 3> col = im.im2col<3, 3, 1, 1>();
-  ndarray<float, 10, 8, 6, 6> r_im = col.col2im<10, 8, 6, 6, 3, 3, 1, 1>();
+  ndarrayPtr<float, 10 * OUT_H * OUT_W, 8 * 3 * 3> col =
+      im.im2col<3, 3, 1, 1>();
+  ndarrayPtr<float, 10, 8, 6, 6> r_im = col->col2im<10, 8, 6, 6, 3, 3, 1, 1>();
 }
 
 TEST(ND_ARRAY_TEST, ND_RAND) {
@@ -708,7 +709,7 @@ TEST(ND_ARRAY_TEST, SOFT_MAX_1DIM) {
 
   auto maxi = a.max();
   for (int i = 0; i < 100; i++) {
-    ASSERT_FLOAT_EQ(std::exp(a.at(i) - maxi), b.linerAt(i));
+    ASSERT_FLOAT_EQ(std::exp(a.at(i) - maxi), b->linerAt(i));
   }
 }
 
@@ -718,7 +719,7 @@ TEST(ND_ARRAY_TEST, SOFT_MAX_2DIM) {
   auto y = softmax(x);
   auto maxi = x.max();
   for (int i = 0; i < 32 * 32; i++) {
-    ASSERT_NE(std::exp(x.linerAt(i) - maxi), y.linerAt(i));
+    ASSERT_NE(std::exp(x.linerAt(i) - maxi), y->linerAt(i));
   }
 }
 
@@ -729,4 +730,15 @@ TEST(ND_ARRAY_TEST, CROSS_ENTROPY_ERROR) {
   t.rand();
   float e = cross_entropy_error(x, t);
   std::cout << e << std::endl;
+}
+
+TEST(ND_ARRAY_TEST, NDARRAY_PTR) {
+  auto ptr = make_ndarray_ptr<float, 100, 100>();
+  for (int i = 0; i < 100; i++)
+    for (int j = 0; j < 100; j++) ptr->at(i, j) = i * 100 + j;
+  for (int i = 0; i < 100; i++)
+    for (int j = 0; j < 100; j++) ASSERT_FLOAT_EQ(i * 100 + j, ptr->at(i, j));
+  ptr->fill(1);
+  for (int i = 0; i < 100; i++)
+    for (int j = 0; j < 100; j++) ASSERT_FLOAT_EQ(1, ptr->at(i, j));
 }
