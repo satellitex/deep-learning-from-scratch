@@ -14,6 +14,9 @@ namespace dpl {
   template <class... Layers>
   class Network;
 
+  template <>
+  class Network<> {};
+
   template <class First, class... Others>
   class Network<First, Others...> {
    public:
@@ -67,6 +70,7 @@ namespace dpl {
     }
 
     First& getLayer() { return layer; }
+    Network<Others...>& next() { return network_; }
 
    private:
     First layer;
@@ -97,6 +101,7 @@ namespace dpl {
     }
 
     Dropout<float, Dims...>& getLayer() { return layer; }
+    Network<Others...>& next() { return network_; }
 
    private:
     Dropout<float, Dims...> layer;
@@ -122,11 +127,13 @@ namespace dpl {
     void set_dropout_ratio_(std::vector<float>::iterator now,
                             std::vector<float>::iterator end) {}
 
-    SoftmaxWithLoss<flato, N, M>& getLayer() { return layer; }
+    SoftmaxWithLoss<float, N, M>& getLayer() { return layer; }
+    Network<>& next() { auto ret = Network<>(); return ret; }
 
    private:
     SoftmaxWithLoss<float, N, M> layer;
   };
-}  // namespace dpl
+
+};  // namespace dpl
 
 #endif  // DEEP_LEARNING_FROM_SCRATCH_NETWORK_HPP

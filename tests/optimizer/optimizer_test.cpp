@@ -11,6 +11,8 @@
 #include "../src/network/network.hpp"
 #include "../src/primitive/primitive.hpp"
 
+using namespace dpl;
+
 TEST(OPTIMIZER_TEST, SGD) {
   auto network = NetworkBuilder<2>::Input<1, 28, 28>()
                      .Convolution<16, 3, 3, 1, 1>()
@@ -21,8 +23,8 @@ TEST(OPTIMIZER_TEST, SGD) {
                      .SoftmaxWithLoss()
                      .build();
 
-  auto input = make_ndarray_ptr<2, 1, 28, 28>();
-  network.predient(input);
-  SGD sgd;
+  auto input = make_ndarray_ptr<float, 2, 1, 28, 28>();
+  network.predict(*input);
+  SGD sgd(0.1);
   sgd.update(network);
 }
