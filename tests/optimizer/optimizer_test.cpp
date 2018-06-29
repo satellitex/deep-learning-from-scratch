@@ -34,7 +34,7 @@ TEST(OPTIMIZER_TEST, SGD) {
   auto cb = *(network.getLayer().b);
   auto cdw = *(network.getLayer().dw);
   auto cdb = *(network.getLayer().db);
-  
+
   auto excw = (cw - *(cdw * (float)0.1));
   auto excb = (cb - *(cdb * (float)0.1));
 
