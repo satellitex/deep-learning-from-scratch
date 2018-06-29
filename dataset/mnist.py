@@ -48,6 +48,7 @@ def _load_label(file_name):
     with gzip.open(file_path, 'rb') as f:
             labels = np.frombuffer(f.read(), np.uint8, offset=8)
     print("Done")
+    
     return labels
 
 def _load_img(file_name):
@@ -56,8 +57,6 @@ def _load_img(file_name):
     print("Converting " + file_name + " to NumPy Array ...")    
     with gzip.open(file_path, 'rb') as f:
             data = np.frombuffer(f.read(), np.uint8, offset=16)
-    import pdb
-    pdb.set_trace()
     data = data.reshape(-1, img_size)
     print("Done")
     
