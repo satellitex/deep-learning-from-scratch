@@ -36,7 +36,7 @@ TEST(NETWORK_TEST, PRDICT_LOSS) {
   teacher.at(1).at(9) = 1;
 
   ndarrayPtr<float, 2, 10> ret = network.predict(input);
-  //  float v = network.loss(input, teacher);
+  float v = network.loss(input, teacher);
 }
 
 TEST(NETWORK_TEST, ACCURACY) {
@@ -91,7 +91,7 @@ TEST(NETWORK_TEST, GRADIENT) {
   network.gradient(input, teacher);
 }
 
-//TEST(NETWORK_TEST, DEEP_CONV_NET) {
+// TEST(NETWORK_TEST, DEEP_CONV_NET) {
 //  auto network = NetworkBuilder<10>::Input<1, 28, 28>()
 //                     .Convolution<16, 3, 3, 1, 1>()
 //                     .Relu()

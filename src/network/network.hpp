@@ -5,6 +5,7 @@
 #ifndef DEEP_LEARNING_FROM_SCRATCH_NETWORK_HPP
 #define DEEP_LEARNING_FROM_SCRATCH_NETWORK_HPP
 
+#include <iostream>
 #include <memory>
 #include "../layer/layer.hpp"
 #include "../primitive/primitive.hpp"
@@ -13,6 +14,9 @@ namespace dpl {
 
   template <class... Layers>
   class Network;
+
+  template <>
+  class Network<> {};
 
   template <class First, class... Others>
   class Network<First, Others...> {
@@ -66,6 +70,11 @@ namespace dpl {
       network_.set_dropout_ratio_(now, end);
     }
 
+    First& getLayer() { return layer; }
+    const First& getLayer() const { return layer; }
+    Network<Others...>& next() { return network_; }
+    const Network<Others...>& next() const { return network_; }
+
    private:
     First layer;
     Network<Others...> network_;
@@ -94,6 +103,11 @@ namespace dpl {
       network_.set_dropout_ratio_(now + 1, end);
     }
 
+    Dropout<float, Dims...>& getLayer() { return layer; }
+    const Dropout<float, Dims...>& getLayer() const { return layer; }
+    Network<Others...>& next() { return network_; }
+    const Network<Others...>& next() const { return network_; }
+
    private:
     Dropout<float, Dims...> layer;
     Network<Others...> network_;
@@ -118,9 +132,34 @@ namespace dpl {
     void set_dropout_ratio_(std::vector<float>::iterator now,
                             std::vector<float>::iterator end) {}
 
+    SoftmaxWithLoss<float, N, M>& getLayer() { return layer; }
+    const SoftmaxWithLoss<float, N, M>& getLayer() const { return layer; }
+    Network<>& next() {
+      auto ret = Network<>();
+      return ret;
+    }
+    const Network<>& next() const {
+      auto ret = Network<>();
+      return ret;
+    }
+
    private:
     SoftmaxWithLoss<float, N, M> layer;
   };
-}  // namespace dpl
+
+  template <class First, class... Layers>
+  std::ostream& operator<<(std::ostream& os,
+                           const Network<First, Layers...>& network_) {
+    os << "===================::Network::===================" << std::endl;
+    os << network_.getLayer() << network_.next();
+    return os;
+  }
+
+  std::ostream& operator<<(std::ostream& os, const Network<>& network) {
+    os << std::endl;
+    return os;
+  }
+
+};  // namespace dpl
 
 #endif  // DEEP_LEARNING_FROM_SCRATCH_NETWORK_HPP
