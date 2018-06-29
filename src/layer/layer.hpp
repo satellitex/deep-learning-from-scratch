@@ -349,7 +349,8 @@ namespace dpl {
   };
 
   template <typename Type, int N, int M>
-  std::ostream& operator<<(std::ostream& os, const SoftmaxWithLoss<Type, N, M>& layer) {
+  std::ostream& operator<<(std::ostream& os,
+                           const SoftmaxWithLoss<Type, N, M>& layer) {
     os << "======== SoftmaxWithLoss Layer ========" << std::endl;
     os << "Args : " << N << ", " << M << std::endl;
     return os;
