@@ -27,13 +27,13 @@ TEST(NETWORK_TEST, PRDICT_LOSS) {
                      .SoftmaxWithLoss()
                      .build();
 
-  ndarray<float, 2, 1, 28, 28> input;
-  input.rand();
+  auto input = make_ndarray_ptr<float, 2, 1, 28, 28>();
+  input->rand();
 
-  ndarray<float, 2, 10> teacher;
-  teacher.fill(0);
-  teacher.at(0).at(0) = 1;
-  teacher.at(1).at(9) = 1;
+  auto teacher = make_ndarray_ptr<float, 2, 10>();
+  teacher->fill(0);
+  teacher->at(0).at(0) = 1;
+  teacher->at(1).at(9) = 1;
 
   ndarrayPtr<float, 2, 10> ret = network.predict(input);
   float v = network.loss(input, teacher);
@@ -54,13 +54,13 @@ TEST(NETWORK_TEST, ACCURACY) {
                      .SoftmaxWithLoss()
                      .build();
 
-  ndarray<float, 2, 1, 28, 28> input;
-  input.rand();
+  auto input = make_ndarray_ptr<float, 2, 1, 28, 28>();
+  input->rand();
 
-  ndarray<float, 2, 10> teacher;
-  teacher.fill(0);
-  teacher.at(0).at(0) = 1;
-  teacher.at(1).at(9) = 1;
+  auto teacher = make_ndarray_ptr<float, 2, 10>();
+  teacher->fill(0);
+  teacher->at(0).at(0) = 1;
+  teacher->at(1).at(9) = 1;
 
   float v = network.accuracy<1>(input, teacher);
 }
@@ -80,13 +80,13 @@ TEST(NETWORK_TEST, GRADIENT) {
                      .SoftmaxWithLoss()
                      .build();
 
-  ndarray<float, 2, 1, 28, 28> input;
-  input.rand();
+  auto input = make_ndarray_ptr<float, 2, 1, 28, 28>();
+  input->rand();
 
-  ndarray<float, 2, 10> teacher;
-  teacher.fill(0);
-  teacher.at(0).at(0) = 1;
-  teacher.at(1).at(9) = 1;
+  auto teacher = make_ndarray_ptr<float, 2, 10>();
+  teacher->fill(0);
+  teacher->at(0).at(0) = 1;
+  teacher->at(1).at(9) = 1;
 
   network.gradient(input, teacher);
 }
@@ -116,12 +116,12 @@ TEST(NETWORK_TEST, GRADIENT) {
 //                     .SoftmaxWithLoss()
 //                     .build();
 //
-//  ndarray<float, 10, 1, 28, 28> input;
-//  input.rand();
+//  auto input = make_ndarray_ptr<float, 10, 1, 28, 28>();
+//  input->rand();
 //
-//  ndarray<float, 10, 10> teacher;
-//  teacher.fill(0);
-//  for (int i = 0; i < 10; i++) teacher.at(i).at(i % 10) = 1;
+//  auto teacher = make_ndarray_ptr<float, 10, 10>();
+//  teacher->fill(0);
+//  for (int i = 0; i < 10; i++) teacher->at(i).at(i % 10) = 1;
 //
 //  network.gradient(input, teacher);
 //}
