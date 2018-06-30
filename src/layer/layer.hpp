@@ -13,25 +13,25 @@ namespace dpl {
   template <typename Type, int... Dims>
   class Relu {
    public:
-    ndarrayPtr<Type, Dims...> forward(const ndarray<Type, Dims...>& input) {
+    ndarrayPtr<Type, Dims...> forward(const ndarrayPtr<Type, Dims...>& input) {
       auto ret = make_ndarray_ptr<Type, Dims...>();
-      for (int i = 0; i < input.size(); i++) {
-        if (input.linerAt(i) >= 0)
-          ret->linerAt(i) = input.linerAt(i);
+      for (int i = 0; i < input->size(); i++) {
+        if (input->linerAt(i) >= 0)
+          ret->linerAt(i) = input->linerAt(i);
         else
           ret->linerAt(i) = 0;
       }
       return std::move(ret);
     }
 
-    ndarrayPtr<Type, Dims...> backward(const ndarray<Type, Dims...>& dout) {
+    ndarrayPtr<Type, Dims...> backward(const ndarrayPtr<Type, Dims...>& dout) {
       auto ret = make_ndarray_ptr<Type, Dims...>();
-      for (int i = 0; i < dout.size(); i++)
-        ret->linerAt(i) = dout.linerAt(i) > 0 ? 1 : 0;
+      for (int i = 0; i < dout->size(); i++)
+        ret->linerAt(i) = dout->linerAt(i) > 0 ? 1 : 0;
       return std::move(ret);
     }
 
-    using output = ndarray<Type, Dims...>;
+    using output = ndarrayPtr<Type, Dims...>;
 
     template <class Func>
     void update(Func optimize) {}
@@ -63,22 +63,22 @@ namespace dpl {
       w = *w * (Type)sqrt(2.0 / N);
       b->fill(0);
     }
-    ndarrayPtr<Type, N, K> forward(const ndarray<Type, N, Dims...>& input) {
-      x = input.template reshape<N, M::value>();
+    ndarrayPtr<Type, N, K> forward(const ndarrayPtr<Type, N, Dims...>& input) {
+      x = input->template reshape<N, M::value>();
       ndarrayPtr<Type, N, K> ret = dot(*x, *w);
       for (int i = 0; i < N; i++)
         for (int j = 0; j < K; j++) ret->at(i, j) = ret->at(i, j) + b->at(j);
       return std::move(ret);
     }
 
-    ndarrayPtr<Type, N, Dims...> backward(const ndarray<Type, N, K>& dout) {
-      ndarrayPtr<Type, N, M::value> ret = dot(dout, *(w->T()));
-      dw = dot(*(x->T()), dout);
-      db = dout.template sum<0>();
+    ndarrayPtr<Type, N, Dims...> backward(const ndarrayPtr<Type, N, K>& dout) {
+      ndarrayPtr<Type, N, M::value> ret = dot(*dout, *(w->T()));
+      dw = dot(*(x->T()), *dout);
+      db = dout->template sum<0>();
       return std::move(ret->template reshape<N, Dims...>());
     }
 
-    using output = ndarray<Type, N, K>;
+    using output = ndarrayPtr<Type, N, K>;
 
     template <class Func>
     void update(Func optimize) {
@@ -112,9 +112,9 @@ namespace dpl {
    public:
     Dropout() { mask = make_ndarray_ptr<float, Dims...>(); }
 
-    ndarrayPtr<Type, Dims...> forward(const ndarray<Type, Dims...>& input,
+    ndarrayPtr<Type, Dims...> forward(const ndarrayPtr<Type, Dims...>& input,
                                       bool train_flag = true) {
-      if (!train_flag) return input * (float)(1.0 - dropout_ratio);
+      if (!train_flag) return *input * (float)(1.0 - dropout_ratio);
       auto rnd = make_ndarray_ptr<Type, Dims...>();
       rnd->rand();
       for (int i = 0; i < rnd->size(); i++) {
@@ -123,15 +123,15 @@ namespace dpl {
         else
           mask->linerAt(i) = 0.0;
       }
-      return input * *(mask);
+      return *input * *(mask);
     }
-    ndarrayPtr<Type, Dims...> backward(const ndarray<Type, Dims...>& dout) {
-      return dout * *mask;
+    ndarrayPtr<Type, Dims...> backward(const ndarrayPtr<Type, Dims...>& dout) {
+      return *dout * *mask;
     }
 
     void set_dropout_ratio(float v) { dropout_ratio = v; }
 
-    using output = ndarray<Type, Dims...>;
+    using output = ndarrayPtr<Type, Dims...>;
 
     template <class Func>
     void update(Func optimize) {}
@@ -179,8 +179,8 @@ namespace dpl {
     }
 
     ndarrayPtr<Type, N, FILTER_N, OUT_H::value, OUT_W::value> forward(
-        const ndarray<Type, N, C, H, W>& input) {
-      auto col = input.template im2col<FILTER_H, FILTER_W, STRIDE, PAD>();
+        const ndarrayPtr<Type, N, C, H, W>& input) {
+      auto col = input->template im2col<FILTER_H, FILTER_W, STRIDE, PAD>();
       col_w = w->template reshape<FILTER_N, C * FILTER_H * FILTER_W>()->T();
 
       auto out = dot(*col, *col_w);
@@ -194,9 +194,9 @@ namespace dpl {
     }
 
     ndarrayPtr<Type, N, C, H, W> backward(
-        const ndarray<Type, N, FILTER_N, OUT_H::value, OUT_W::value>& dout) {
+        const ndarrayPtr<Type, N, FILTER_N, OUT_H::value, OUT_W::value>& dout) {
       auto out =
-          dout.template transpose<0, 2, 3, 1>()
+          dout->template transpose<0, 2, 3, 1>()
               ->template reshape<N * OUT_H::value * OUT_W::value, FILTER_N>();
       db = out->template sum<0>();
       auto tdw = dot(*(col->T()), *out);
@@ -209,7 +209,7 @@ namespace dpl {
       return std::move(ret);
     };
 
-    using output = ndarray<Type, N, FILTER_N, OUT_H::value, OUT_W::value>;
+    using output = ndarrayPtr<Type, N, FILTER_N, OUT_H::value, OUT_W::value>;
 
     template <class Func>
     void update(Func optimize) {
@@ -263,8 +263,8 @@ namespace dpl {
     }
 
     ndarrayPtr<Type, N, C, OUT_H::value, OUT_W::value> forward(
-        const ndarray<Type, N, C, H, W>& input) {
-      *x = input;
+        const ndarrayPtr<Type, N, C, H, W>& input) {
+      *x = *input;
       auto col_t = x->template im2col<POOL_H, POOL_W, STRIDE, 0>();
       auto col = col_t->template reshape<N * OUT_H::value * OUT_W::value * C,
                                          POOL_H * POOL_W>();
@@ -278,14 +278,14 @@ namespace dpl {
     }
 
     ndarrayPtr<Type, N, C, H, W> backward(
-        const ndarray<Type, N, C, OUT_H::value, OUT_W::value>& dout) {
-      auto out = dout.template transpose<0, 2, 3, 1>();
+        const ndarrayPtr<Type, N, C, OUT_H::value, OUT_W::value>& dout) {
+      auto out = dout->template transpose<0, 2, 3, 1>();
 
       auto dmax = make_ndarray_ptr<Type, N * OUT_H::value * OUT_W::value * C,
                                    POOL_H * POOL_W>();
       dmax->fill(0);
       for (int i = 0; i < arg_max->size(); i++) {
-        dmax->at(i, arg_max->at(i)) = dout.linerAt(i);
+        dmax->at(i, arg_max->at(i)) = dout->linerAt(i);
       }
       auto dcol = dmax->template reshape<N * OUT_H::value * OUT_W::value,
                                          C * POOL_H * POOL_W>();
@@ -294,7 +294,7 @@ namespace dpl {
       return std::move(dx);
     };
 
-    using output = ndarray<Type, N, C, OUT_H::value, OUT_W::value>;
+    using output = ndarrayPtr<Type, N, C, OUT_H::value, OUT_W::value>;
 
     template <class Func>
     void update(Func optimize) {}
@@ -323,12 +323,12 @@ namespace dpl {
       t = make_ndarray_ptr<Type, N, M>();
     }
 
-    Type forward(const ndarray<Type, N, M>& input,
-                 const ndarray<Type, N, M>& teacher) {
-      y = softmax(input);
-      *t = teacher;
+    Type forward(const ndarrayPtr<Type, N, M>& input,
+                 const ndarrayPtr<Type, N, M>& teacher) {
+      y = softmax(*input);
+      *t = *teacher;
 
-      Type loss = cross_entropy_error(*y, teacher);
+      Type loss = cross_entropy_error(*y, *teacher);
       return loss;
     };
 

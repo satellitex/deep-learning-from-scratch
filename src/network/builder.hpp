@@ -13,7 +13,7 @@ namespace dpl {
   template <int... Ints>
   class InputLayer {
    public:
-    using output = ndarray<float, Ints...>;
+    using output = ndarrayPtr<float, Ints...>;
   };
 
   template <class Last, class... Layers>
@@ -24,7 +24,7 @@ namespace dpl {
     struct ReluBuild;
 
     template <int... Dims>
-    struct ReluBuild<ndarray<float, Dims...>> {
+    struct ReluBuild<ndarrayPtr<float, Dims...>> {
       using type = Relu<float, Dims...>;
     };
 
@@ -47,7 +47,7 @@ namespace dpl {
     struct AffineBuild;
 
     template <int N, int K, int... Dims>
-    struct AffineBuild<ndarray<float, N, Dims...>, K> {
+    struct AffineBuild<ndarrayPtr<float, N, Dims...>, K> {
       using type = Affine<float, N, K, Dims...>;
     };
 
@@ -72,7 +72,7 @@ namespace dpl {
     struct DropoutBuild;
 
     template <int... Dims>
-    struct DropoutBuild<ndarray<float, Dims...>> {
+    struct DropoutBuild<ndarrayPtr<float, Dims...>> {
       using type = Dropout<float, Dims...>;
     };
 
@@ -99,7 +99,7 @@ namespace dpl {
 
     template <int N, int C, int H, int W, int FILTER_N, int FILTER_H,
               int FILTER_W, int STRIDE, int PAD>
-    struct ConvolutionBuild<ndarray<float, N, C, H, W>, FILTER_N, FILTER_H,
+    struct ConvolutionBuild<ndarrayPtr<float, N, C, H, W>, FILTER_N, FILTER_H,
                             FILTER_W, STRIDE, PAD> {
       using type = Convolution<float, N, C, H, W, FILTER_N, FILTER_H, FILTER_W,
                                STRIDE, PAD>;
@@ -132,7 +132,7 @@ namespace dpl {
     struct PoolingBuild;
 
     template <int N, int C, int H, int W, int POOL_H, int POOL_W, int STRIDE>
-    struct PoolingBuild<ndarray<float, N, C, H, W>, POOL_H, POOL_W, STRIDE> {
+    struct PoolingBuild<ndarrayPtr<float, N, C, H, W>, POOL_H, POOL_W, STRIDE> {
       using type = Pooling<float, N, C, H, W, POOL_H, POOL_W, STRIDE>;
     };
 
@@ -160,7 +160,7 @@ namespace dpl {
     struct SoftmaxWithLossBuild;
 
     template <int N, int M>
-    struct SoftmaxWithLossBuild<ndarray<float, N, M>> {
+    struct SoftmaxWithLossBuild<ndarrayPtr<float, N, M>> {
       using type = SoftmaxWithLoss<float, N, M>;
     };
 

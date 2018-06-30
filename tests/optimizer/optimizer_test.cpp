@@ -28,7 +28,7 @@ TEST(OPTIMIZER_TEST, SGD) {
   input->rand();
   teacher->rand();
 
-  network.gradient(*input, *teacher);
+  network.gradient(input, teacher);
 
   auto cw = *(network.getLayer().w);
   auto cb = *(network.getLayer().b);
