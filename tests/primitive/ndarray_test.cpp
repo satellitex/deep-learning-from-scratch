@@ -8,8 +8,6 @@
 
 using namespace dpl;
 
-TEST(NDARRAY_TEST, NO_ERROR) { std::cout << "passed" << std::endl; }
-
 TEST(ND_ARRAY_TEST, INITTIALIZE_ALL_ZERO_3x3x3) {
   ndarray<float, 3, 3, 3> array;
   array.fill(0);
@@ -729,7 +727,6 @@ TEST(ND_ARRAY_TEST, CROSS_ENTROPY_ERROR) {
   x.rand();
   t.rand();
   float e = cross_entropy_error(x, t);
-  std::cout << e << std::endl;
 }
 
 TEST(ND_ARRAY_TEST, NDARRAY_PTR) {
@@ -741,4 +738,28 @@ TEST(ND_ARRAY_TEST, NDARRAY_PTR) {
   ptr->fill(1);
   for (int i = 0; i < 100; i++)
     for (int j = 0; j < 100; j++) ASSERT_FLOAT_EQ(1, ptr->at(i, j));
+}
+
+TEST(ND_ARRAY_TEST, LINRE_AT) {
+  auto ptr = make_ndarray_ptr<float, 3, 3, 3>();
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 3; j++)
+      for (int k = 0; k < 3; k++) {
+        ptr->at(i, j, k) = i * 9 + j * 3 + k;
+        ASSERT_FLOAT_EQ(ptr->at(i, j, k), ptr->linerAt(i * 9 + j * 3 + k));
+      }
+}
+
+TEST(ND_ARRAY_TEST, EACH_TEST) {
+  auto ptr = make_ndarray_ptr<float, 3, 3, 3>();
+  ptr->each([](float& v) { v = 100; });
+  for (int i = 0; i < ptr->size(); i++)
+    ASSERT_FLOAT_EQ((float)100, ptr->linerAt(i));
+}
+
+TEST(ND_ARRAY_TEST, EACH_INDEX) {
+  auto ptr = make_ndarray_ptr<float, 3, 3, 3>();
+  ptr->each([](float& v, int i) { v = i; });
+  for (int i = 0; i < ptr->size(); i++)
+    ASSERT_FLOAT_EQ((float)i, ptr->linerAt(i));
 }

@@ -6,10 +6,11 @@
 #define DEEP_LEARNING_FROM_SCRATCH_MNIST_HPP
 
 #include <sys/stat.h>
+#include <cstdio>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <cstdlib>
 #include "../config.hpp"
 #include "../primitive/ndarray.hpp"
 #include "curl/curl.h"
@@ -54,7 +55,7 @@ namespace dpl {
 
       std::string command = "gzip -d " + file;
       std::cout << "execute : " << command << std::endl;
-      if( system(command.c_str()) == -1 )
+      if (system(command.c_str()) == -1)
         std::cout << "Failed Command : " << command << std::endl;
       else
         std::cout << "Success Ungzip" << std::endl;
@@ -82,22 +83,27 @@ namespace dpl {
 
     template <int N, int C, int H, int W>
     ndarrayPtr<float, N, C, H, W> load_image_(std::string file) {
-      std::ifstream fin(file, std::ios::in | std::ios::binary);
-      if (!fin) {
+      FILE *fp;
+      fp = fopen(file.c_str(), "rb");
+      if (!fp) {
         std::cout << "can not open file : " << file << std::endl;
         return nullptr;
       }
 
-      auto array = make_ndarray_ptr<float, N * C * H * W>();
+      std::cout << "start load" << std::endl;
+      uint8_t *array = new uint8_t[N * C * H * W];
+      fseek(fp, 16, SEEK_SET);  // offset = 16
+      fread((void *)array, sizeof(uint8_t), N * C * H * W, fp);
+      fclose(fp);
 
-      fin.seekg(16, std::ios_base::beg);         // offset = 16
-      for (int i = 0; i < N * C * H * W; i++) {  // TODO 高速読み取り
-        uint8_t c;
-        fin.read((char *)&c, sizeof(c));
-        array->at(i) = (float)c;
-      }
-      fin.close();
-      return array->template reshape<N, C, H, W>();
+      std::cout << "load!" << std::endl;
+      auto ret = make_ndarray_ptr<float, N, C, H, W>();
+      auto &ret_ref = *ret;
+      for (int i = 0; i < N * C * H * W; i++)
+        ret_ref.linerAt(i) = (float)array[i];
+      delete[] array;
+      std::cout << "ok convert" << std::endl;
+      return std::move(ret);
     };
 
     template <int N>
@@ -136,10 +142,8 @@ namespace dpl {
 
       {  // normalize
         std::cout << "::normalize::" << std::endl;
-        for (int i = 0; i < train_img->size(); i++)
-          train_img->linerAt(i) = train_img->linerAt(i) / (float)255;
-        for (int i = 0; i < test_img->size(); i++)
-          test_img->linerAt(i) = test_img->linerAt(i) / (float)255;
+        train_img->each([](float &v) { v /= 255.0; });
+        test_img->each([](float &v) { v /= 255.0; });
       }
 
       {  // one-hot-label

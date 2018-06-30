@@ -21,4 +21,5 @@ TEST(LOADER_TEST, MNIST) {
   MNISTLoader mnistLoader;
   mnistLoader.load();
   auto& test_img = mnistLoader.getTestImage();
+  std::cout << test_img->at(0,0,10) << std::endl;
 }

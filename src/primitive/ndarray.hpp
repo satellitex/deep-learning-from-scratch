@@ -9,6 +9,7 @@
 #include <array>
 #include <bitset>
 #include <complex>
+#include <functional>
 #include <iostream>
 #include <limits>
 #include <memory>
@@ -135,6 +136,16 @@ namespace dpl {
       if (initialize_ps_ >= size()) throw initialize_ndarray_error();
       at(initialize_ps_) = v;
       initialize_ps_++;
+      return *this;
+    }
+
+    ndarray<Type, First>& each(std::function<void(Type&, int)> f,
+                               int index = 0) {
+      for (int i = 0; i < First; i++) f(at(i), index + i);
+      return *this;
+    }
+    ndarray<Type, First>& each(std::function<void(Type&)> f) {
+      for (int i = 0; i < First; i++) f(at(i));
       return *this;
     }
 
@@ -617,6 +628,16 @@ namespace dpl {
     struct GetDim {
       enum { value = Get<Index, First, Second, Args...>::value };
     };
+
+    ndarray<Type, First, Second, Args...>& each(
+        std::function<void(Type&, int)> f, int index = 0) {
+      for (int i = 0; i < size(); i++) f(linerAt(i), i);
+      return *this;
+    }
+    ndarray<Type, First, Second, Args...>& each(std::function<void(Type&)> f) {
+      for (int i = 0; i < First; i++) at(i).each(f);
+      return *this;
+    }
 
    private:
     size_t initialize_ps_;
