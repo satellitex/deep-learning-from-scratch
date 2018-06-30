@@ -20,3 +20,7 @@ jobs:
           name: test
           command: |
             cd /opt/build && ulimit -s unlimited && make test
+      - run:
+          name: clear
+          command: |
+            rm -rf /opt/build
