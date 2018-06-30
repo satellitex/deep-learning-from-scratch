@@ -5,28 +5,28 @@
 #ifndef DEEP_LEARNING_FROM_SCRATCH_TRAINER_H
 #define DEEP_LEARNING_FROM_SCRATCH_TRAINER_H
 
+#include <memory>
 #include "../network/network.hpp"
 #include "../optimizer/optimizer.hpp"
-#include <memory>
 
 namespace dpl {
+  template <class Network, class Optimizer, class TrainInput, class TrainLabel,
+            class TestInput, class TestLabel>
   class Trainer {
    public:
-    Trainer(std::unique_ptr<dpl::Network> network, ndarray& x_train,
-            ndarray& t_train, ndarray& x_test, ndarray& t_test, int epochs,
-            int mini_batch_size,
-            std::unique_ptr<dpl::Optimizer> optimizer,
-            int evaluate_sample_num_per_epoch, bool verbose)
-        : network_(std::move(network)),
-          x_train_(x_train),
-          t_train_(t_train),
-          x_test_(x_test),
-          t_test_(t_test),
-          epochs_(epochs),
+    Trainer(Network network, Optimizer optimizer, TrainInput x_train,
+            TrainLabel t_train, TestInput x_test, TestLabel t_test, int epochs,
+            int mini_batch_size, int evaluate_sample_num_per_epoch,
+            bool verbose)
+        : epochs_(epochs),
           mini_batch_size_(mini_batch_size),
-          optimizer_(std::move(optimizer)),
           evaluate_sample_num_per_epoch_(evaluate_sample_num_per_epoch),
-          verbose_(verbose) {}
+          verbose_(verbose) {
+      *x_train_ = *x_train;
+      *t_train_ = *t_train;
+      *x_test_ = *x_test;
+      *t_test_ = *t_test;
+    }
 
     void train_step() {
       std::cout << "================= train step ==================="
@@ -37,9 +37,12 @@ namespace dpl {
     }
 
    private:
-    std::unique_ptr<dpl::Network> network_;
-    std::unique_ptr<dpl::Optimizer> optimizer_;
-    ndarray &x_train_, t_train_, x_test_, t_test_;
+    Network network_;
+    Optimizer optimizer_;
+    TrainInput x_train_;
+    TrainLabel t_train_;
+    TestInput x_test_;
+    TestLabel t_test_;
     int epochs_, mini_batch_size_, evaluate_sample_num_per_epoch_;
     bool verbose_;
   };
