@@ -19,7 +19,7 @@ namespace dpl {
   class Loader {};
 
   class MNISTLoader {
-   private:
+   public:
     static constexpr int TRAIN_NUM = 60000;
     static constexpr int TEST_NUM = 10000;
     static constexpr int IMAGE_C = 1;
@@ -27,6 +27,7 @@ namespace dpl {
     static constexpr int IMAGE_W = 28;
     static constexpr int IMAGE_SIZE = 784;
 
+   private:
     void download_(std::string file) {
       struct stat st;
       if (!stat(file.c_str(), &st)) {
