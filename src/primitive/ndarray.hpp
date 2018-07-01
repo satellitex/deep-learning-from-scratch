@@ -5,7 +5,6 @@
 #ifndef DEEP_LEARNING_FROM_SCRATCH_NDARRAY_HPP
 #define DEEP_LEARNING_FROM_SCRATCH_NDARRAY_HPP
 
-#include <utility>
 #include <array>
 #include <bitset>
 #include <complex>
@@ -658,26 +657,14 @@ namespace dpl {
       return *this;
     }
 
-    template <int N>
-    ndarrayPtr<Type, N, Second, Args...> random_choice() {
-      static_assert(0 < N && N < First,
-                    "ndarray<Type,First, Args...>.random_choice<N> : 0 < N < "
+    template <int R>
+    ndarrayPtr<Type, R, Second, Args...> random_choice() {
+      static_assert(0 < R && R < First,
+                    "ndarray<Type,First, Args...>.random_choice<R> : 0 < R < "
                     "First dimention");
-      auto ret = make_ndarray_ptr<Type, N, Second, Args...>();
-      auto fl = std::make_unique<std::bitset<First>>();
-      auto v = std::make_unique<int>(N);
-
-      fl->reset();
-      for (int i = 0; i < N; i++) fl->set(i);
-      int cnt = First;
-      while (--cnt) {
-        ch_score = std::make_unique<std::uniform_int_distribution<int>>(0, cnt);
-        int k = (*ch_score)(*mt);
-        std::swap((*fl)[k], (*fl)[cnt]);
-      }
-      for (int i = 0, j = 0; i < First; i++)
-        if ((*fl)[i]) ret->at(j++) = at(i);
-
+      auto mask = make_ndarray_ptr<bool, First>();
+      mask->template random_mask<R>();
+      auto ret = choice<R>(*mask);
       return std::move(ret);
     }
 
