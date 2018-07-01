@@ -843,7 +843,7 @@ namespace dpl {
     for (int i = 0; i < N; i++) {
       sum += std::log(input.at(i, t->at(i)) + 1e-7);
     }
-    return sum / N;
+    return -sum / N;
   };
 
 }  // namespace dpl
