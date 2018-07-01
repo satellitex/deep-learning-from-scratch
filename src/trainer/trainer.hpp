@@ -2,39 +2,50 @@
 // Created by TakumiYamashita on 2018/06/10.
 //
 
-#ifndef DEEP_LEARNING_FROM_SCRATCH_TRAINER_H
-#define DEEP_LEARNING_FROM_SCRATCH_TRAINER_H
+#ifndef DEEP_LEARNING_FROM_SCRATCH_TRAINER_HPP
+#define DEEP_LEARNING_FROM_SCRATCH_TRAINER_HPP
 
 #include <memory>
-#include "../network/network.hpp"
-#include "../optimizer/optimizer.hpp"
+#include "../src/network/network.hpp"
+#include "../src/optimizer/optimizer.hpp"
+#include "../src/primitive/ndarray.hpp"
 
 namespace dpl {
-  template <int BATCH_SIZE, int EVALUEATE_SAMPLE_NUM_PER_EPOCH, class Network,
-            class Optimizer, class TrainInput, class TrainLabel,
-            class TestInput, class TestLabel>
-  class Trainer {
+  template <int BATCH_SIZE, int EVALUEATE_SAMPLE_NUM_PER_EPOCH, class NETWORK,
+            class OPTIMZIER, class TRAIN_INPUT, class TRAIN_LABEL,
+            class TEST_INPUT, class TEST_LABEL>
+  class Trainer;
+
+  template <int BATCH_SIZE, int EVALUEATE_SAMPLE_NUM_PER_EPOCH, class... Layers,
+            class Optimizer, int... TrainInputArgs, int... TrainLabelArgs,
+            int... TestInputArgs, int... TestLabelArgs>
+  class Trainer<
+      BATCH_SIZE, EVALUEATE_SAMPLE_NUM_PER_EPOCH, Network<Layers...>, Optimizer,
+      ndarray<float, TrainInputArgs...>, ndarray<float, TrainLabelArgs...>,
+      ndarray<float, TestInputArgs...>, ndarray<float, TestLabelArgs...>> {
    public:
-    Trainer(const Network& network, const Optimizer& optimizer,
-            const TrainInput& x_train, const TrainLabel& t_train,
-            const TestInput& x_test, const TestLabel& t_test, int epochs,
-            bool verbose)
-        : epochs_(epochs), verbose_(verbose) {
+    Trainer(const Network<Layers...>& network, const Optimizer& optimizer,
+            const ndarrayPtr<float, TrainInputArgs...>& x_train,
+            const ndarrayPtr<float, TrainLabelArgs...>& t_train,
+            const ndarrayPtr<float, TestInputArgs...>& x_test,
+            const ndarrayPtr<float, TestLabelArgs...>& t_test, int epochs)
+        : epochs_(epochs) {
       *x_train_ = *x_train;
       *t_train_ = *t_train;
       *x_test_ = *x_test;
       *t_test_ = *t_test;
 
-      iter_per_epoch_ = std::max(TrainInput::GetDim<0>::value / BATCH_SIZE, 1);
+      iter_per_epoch_ =
+          std::max(Get<0, TrainInputArgs...>::value / BATCH_SIZE, 1);
       max_iter_ = epochs_ * iter_per_epoch_;
       current_iter_ = 0;
       current_epoch_ = 0;
     }
 
     void train_step() {
-      constexpr int TRAIN_NUM = TrainInput::GetDim<0>::value;
+      constexpr int TRAIN_NUM = Get<0, TrainInputArgs...>::value;
       auto mask = make_ndarray_ptr<bool, TRAIN_NUM>();
-      mask->template random_choice<BATCH_SIZE>();
+      mask->template random_mask<BATCH_SIZE>();
 
       auto x_batch = x_train_->template choice<BATCH_SIZE>(*mask);
       auto t_batch = t_train_->template choice<BATCH_SIZE>(*mask);
@@ -79,21 +90,21 @@ namespace dpl {
       auto test_acc = network_.accuracy(x_test_, t_test_);
       std::cout << "=============== Final Test Accuracy ==============="
                 << std::endl;
-      std::cout << "test acc: " << test_acc_ << std::endl;
+      std::cout << "test acc: " << test_acc << std::endl;
     }
 
    private:
-    Network network_;
+    Network<Layers...> network_;
     Optimizer optimizer_;
-    TrainInput x_train_;
-    TrainLabel t_train_;
-    TestInput x_test_;
-    TestLabel t_test_;
+    ndarrayPtr<float, TrainInputArgs...> x_train_;
+    ndarrayPtr<float, TrainLabelArgs...> t_train_;
+    ndarrayPtr<float, TestInputArgs...> x_test_;
+    ndarrayPtr<float, TestLabelArgs...> t_test_;
     int epochs_, evaluate_sample_num_per_epoch_;
 
     int iter_per_epoch_, max_iter_, current_iter_, current_epoch_;
-    std::vector<flaot> train_loss_list_, train_acc_list_, test_acc_list_;
+    std::vector<float> train_loss_list_, train_acc_list_, test_acc_list_;
   };
 }  // namespace dpl
 
-#endif  // DEEP_LEARNING_FROM_SCRATCH_TRAINER_H
+#endif  // DEEP_LEARNING_FROM_SCRATCH_TRAINER_HPP

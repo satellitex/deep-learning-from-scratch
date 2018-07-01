@@ -790,3 +790,8 @@ TEST(ND_ARRAY_TEST, MASK_AND_CHOICE) {
     ASSERT_LT(p, now);  // p < now
   }
 }
+
+TEST(ND_ARRAY_TEST, GET_DIM) {
+  constexpr int k = ndarray<float, 3, 3, 3>::GetDim<0>::value;
+  ASSERT_EQ(3, k);
+}
