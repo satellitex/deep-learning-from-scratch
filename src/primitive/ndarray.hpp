@@ -5,7 +5,7 @@
 #ifndef DEEP_LEARNING_FROM_SCRATCH_NDARRAY_HPP
 #define DEEP_LEARNING_FROM_SCRATCH_NDARRAY_HPP
 
-#include <algorithm>
+#include <utility>
 #include <array>
 #include <bitset>
 #include <complex>
