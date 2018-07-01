@@ -557,7 +557,8 @@ namespace dpl {
       constexpr int OUT_H = (H + 2 * PAD - FILTER_H) / STRIDE + 1;
       constexpr int OUT_W = (W + 2 * PAD - FILTER_W) / STRIDE + 1;
 
-      auto img = make_ndarray_ptr<Type, N, C, H + PAD * 2, W + PAD * 2>(); img->fill(0);
+      auto img = make_ndarray_ptr<Type, N, C, H + PAD * 2, W + PAD * 2>();
+      img->fill(0);
       for (int n = 0; n < N; n++)
         for (int c = 0; c < C; c++)
           for (int y = 0; y < H; y++)
