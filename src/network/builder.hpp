@@ -216,6 +216,21 @@ namespace dpl {
       return std::move(network);
     }
 
+    /**
+     * Build Network
+     *
+     * @return std::unique_ptr<NetworkBuild> including Layers.
+     */
+    auto buildPtr() {
+      auto network = std::make_unique<typename NetworkBuild<Last, Layers...>::type>();
+      if (!dropout_ratio_list.empty()) {
+        reverse(dropout_ratio_list.begin(), dropout_ratio_list.end());
+        network->set_dropout_ratio_(dropout_ratio_list.begin(),
+                                    dropout_ratio_list.end());
+      }
+      return std::move(network);
+    }
+
     // ========================= dropout ratio ===========================
     void set_dropout_ratio_(float v) { dropout_ratio_list.emplace_back(v); }
     void set_dropout_ratio_list_(std::vector<float> dropout_ratio_list) {

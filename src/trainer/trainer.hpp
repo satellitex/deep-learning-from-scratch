@@ -20,20 +20,23 @@ namespace dpl {
             class Optimizer, int... TrainInputArgs, int... TrainLabelArgs,
             int... TestInputArgs, int... TestLabelArgs>
   class Trainer<
-      BATCH_SIZE, EVALUEATE_SAMPLE_NUM_PER_EPOCH, Network<Layers...>, Optimizer,
-      ndarray<float, TrainInputArgs...>, ndarray<float, TrainLabelArgs...>,
-      ndarray<float, TestInputArgs...>, ndarray<float, TestLabelArgs...>> {
+      BATCH_SIZE, EVALUEATE_SAMPLE_NUM_PER_EPOCH, NetworkPtr<Layers...>,
+      Optimizer, ndarrayPtr<float, TrainInputArgs...>,
+      ndarrayPtr<float, TrainLabelArgs...>, ndarrayPtr<float, TestInputArgs...>,
+      ndarrayPtr<float, TestLabelArgs...>> {
    public:
-    Trainer(const Network<Layers...>& network, const Optimizer& optimizer,
-            const ndarrayPtr<float, TrainInputArgs...>& x_train,
-            const ndarrayPtr<float, TrainLabelArgs...>& t_train,
-            const ndarrayPtr<float, TestInputArgs...>& x_test,
-            const ndarrayPtr<float, TestLabelArgs...>& t_test, int epochs)
+    Trainer(NetworkPtr<Layers...> network, const Optimizer& optimizer,
+            ndarrayPtr<float, TrainInputArgs...> x_train,
+            ndarrayPtr<float, TrainLabelArgs...> t_train,
+            ndarrayPtr<float, TestInputArgs...> x_test,
+            ndarrayPtr<float, TestLabelArgs...> t_test, int epochs)
         : epochs_(epochs) {
-      *x_train_ = *x_train;
-      *t_train_ = *t_train;
-      *x_test_ = *x_test;
-      *t_test_ = *t_test;
+      network_ = std::move(network);
+      x_train_ = std::move(x_train);
+      t_train_ = std::move(t_train);
+
+      x_test_ = std::move(x_test);
+      t_test_ = std::move(t_test);
 
       iter_per_epoch_ =
           std::max(Get<0, TrainInputArgs...>::value / BATCH_SIZE, 1);
@@ -50,10 +53,10 @@ namespace dpl {
       auto x_batch = x_train_->template choice<BATCH_SIZE>(*mask);
       auto t_batch = t_train_->template choice<BATCH_SIZE>(*mask);
 
-      network_.gradient(x_batch, t_batch);
-      optimizer_.update(network_);
+      network_->gradient(x_batch, t_batch);
+      optimizer_.update(*network_);
 
-      float loss = network_.loss(x_batch, t_batch);
+      float loss = network_->loss(x_batch, t_batch);
       std::vector<float> train_loss_list;
       train_loss_list.emplace_back(loss);
 
@@ -72,8 +75,10 @@ namespace dpl {
         auto t_test_sample_ =
             t_test_->template slice<0, 0, EVALUEATE_SAMPLE_NUM_PER_EPOCH, 1>();
 
-        float train_acc = network_.accuracy(x_train_sample_, t_train_sample_);
-        float test_acc = network_.accuracy(x_test_sample_, t_test_sample_);
+        float train_acc = network_->template accuracy<BATCH_SIZE>(
+            x_train_sample_, t_train_sample_);
+        float test_acc = network_->template accuracy<BATCH_SIZE>(
+            x_test_sample_, t_test_sample_);
         train_acc_list_.emplace_back(train_acc);
         test_acc_list_.emplace_back(test_acc);
 
@@ -87,14 +92,14 @@ namespace dpl {
       std::cout << "================= train ===================" << std::endl;
       for (int i = 0; i < max_iter_; i++) train_step();
 
-      auto test_acc = network_.accuracy(x_test_, t_test_);
+      auto test_acc = network_->template accuracy<BATCH_SIZE>(x_test_, t_test_);
       std::cout << "=============== Final Test Accuracy ==============="
                 << std::endl;
       std::cout << "test acc: " << test_acc << std::endl;
     }
 
    private:
-    Network<Layers...> network_;
+    NetworkPtr<Layers...> network_;
     Optimizer optimizer_;
     ndarrayPtr<float, TrainInputArgs...> x_train_;
     ndarrayPtr<float, TrainLabelArgs...> t_train_;
