@@ -5,7 +5,6 @@
 #ifndef DEEP_LEARNING_FROM_SCRATCH_NDARRAY_HPP
 #define DEEP_LEARNING_FROM_SCRATCH_NDARRAY_HPP
 
-#include <algorithm>
 #include <array>
 #include <bitset>
 #include <complex>
@@ -84,8 +83,8 @@ namespace dpl {
    public:
     ndarray() : initialize_ps_(0) {
       std::random_device rd;
-      mt = new std::mt19937(rd());
-      score = new std::uniform_real_distribution<float>(0.0, 1.0);
+      mt = std::make_shared<std::mt19937>(rd());
+      score = std::make_shared<std::uniform_real_distribution<float>>(0.0, 1.0);
     }
     ndarray(const std::array<Type, First>& cp) : std::array<Type, First>(cp) {
       ndarray();
@@ -149,10 +148,25 @@ namespace dpl {
       return *this;
     }
 
+    template <int R>
+    ndarray<Type, First>& random_mask() {
+      static_assert(0 < R && R < First,
+                    "ndarray<Type,First>.choice<R> : 0 < R < First dimention");
+      each([](Type& v, int i) { v = (i < R ? 1 : 0); });
+      int cnt = First;
+      while (--cnt) {
+        auto ch_score =
+            std::make_unique<std::uniform_int_distribution<int>>(0, cnt);
+        int k = (*ch_score)(*mt);
+        std::swap(at(k), at(cnt));
+      }
+      return *this;
+    };
+
    private:
     size_t initialize_ps_;
-    std::mt19937* mt;
-    std::uniform_real_distribution<float>* score;
+    std::shared_ptr<std::mt19937> mt;
+    std::shared_ptr<std::uniform_real_distribution<float>> score;
   };
 
   template <typename Type, int First>
@@ -304,7 +318,10 @@ namespace dpl {
     //================================================================
 
    public:
-    ndarray() : initialize_ps_(0) {}
+    ndarray() : initialize_ps_(0) {
+      std::random_device rd;
+      mt = std::make_shared<std::mt19937>(rd());
+    }
 
     ndarray<Type, First, Second, Args...>& at() { return *this; }
     const ndarray<Type, First, Second, Args...>& at() const { return *this; }
@@ -540,6 +557,7 @@ namespace dpl {
       constexpr int OUT_W = (W + 2 * PAD - FILTER_W) / STRIDE + 1;
 
       auto img = make_ndarray_ptr<Type, N, C, H + PAD * 2, W + PAD * 2>();
+      img->fill(0);
       for (int n = 0; n < N; n++)
         for (int c = 0; c < C; c++)
           for (int y = 0; y < H; y++)
@@ -639,8 +657,29 @@ namespace dpl {
       return *this;
     }
 
+    template <int R>
+    ndarrayPtr<Type, R, Second, Args...> random_choice() {
+      static_assert(0 < R && R < First,
+                    "ndarray<Type,First, Args...>.random_choice<R> : 0 < R < "
+                    "First dimention");
+      auto mask = make_ndarray_ptr<bool, First>();
+      mask->template random_mask<R>();
+      auto ret = choice<R>(*mask);
+      return std::move(ret);
+    }
+
+    template <int R, typename U>
+    ndarrayPtr<Type, R, Second, Args...> choice(const ndarray<U, First>& mask) {
+      auto ret = make_ndarray_ptr<Type, R, Second, Args...>();
+      for (int i = 0, j = 0; i < First && j < R; i++)
+        if (mask.at(i)) ret->at(j++) = at(i);
+      return std::move(ret);
+    };
+
    private:
     size_t initialize_ps_;
+    std::shared_ptr<std::mt19937> mt;
+    std::shared_ptr<std::uniform_int_distribution<int>> ch_score;
   };  // namespace dpl
 
   template <typename Type, int... Ints>
@@ -792,7 +831,7 @@ namespace dpl {
     for (int i = 0; i < N; i++) {
       sum += std::log(input.at(i, t->at(i)) + 1e-7);
     }
-    return sum / N;
+    return -sum / N;
   };
 
 }  // namespace dpl

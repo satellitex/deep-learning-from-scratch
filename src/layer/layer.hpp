@@ -166,13 +166,6 @@ namespace dpl {
       w = make_ndarray_ptr<Type, FILTER_N, C, FILTER_H, FILTER_W>();
       b = make_ndarray_ptr<Type, FILTER_N>();
 
-      col = make_ndarray_ptr<Type, N * OUT_H::value * OUT_W::value,
-                             C * FILTER_H * FILTER_W>();
-      col_w = make_ndarray_ptr<Type, C * FILTER_H * FILTER_W, FILTER_N>();
-
-      db = make_ndarray_ptr<Type, FILTER_N>();
-      dw = make_ndarray_ptr<Type, FILTER_N, C, FILTER_H, FILTER_W>();
-
       w->rand();
       w = *w * (Type)sqrt(2.0 / N);
       b->fill(0);
@@ -180,7 +173,7 @@ namespace dpl {
 
     ndarrayPtr<Type, N, FILTER_N, OUT_H::value, OUT_W::value> forward(
         const ndarrayPtr<Type, N, C, H, W>& input) {
-      auto col = input->template im2col<FILTER_H, FILTER_W, STRIDE, PAD>();
+      col = input->template im2col<FILTER_H, FILTER_W, STRIDE, PAD>();
       col_w = w->template reshape<FILTER_N, C * FILTER_H * FILTER_W>()->T();
 
       auto out = dot(*col, *col_w);

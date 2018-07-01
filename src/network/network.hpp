@@ -160,6 +160,9 @@ namespace dpl {
     return os;
   }
 
+  template <class... Layers>
+  using NetworkPtr = std::unique_ptr<Network<Layers...>>;
+
 };  // namespace dpl
 
 #endif  // DEEP_LEARNING_FROM_SCRATCH_NETWORK_HPP

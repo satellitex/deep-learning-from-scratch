@@ -763,3 +763,35 @@ TEST(ND_ARRAY_TEST, EACH_INDEX) {
   for (int i = 0; i < ptr->size(); i++)
     ASSERT_FLOAT_EQ((float)i, ptr->linerAt(i));
 }
+
+TEST(ND_ARRAY_TEST, RNDOM_CHOICE) {
+  auto ptr = make_ndarray_ptr<int, 10, 2>();
+  ptr->each([](int& v, int i) { v = i + 1; });
+
+  auto ch = ptr->random_choice<5>();
+  int p = 0;
+  for (int i = 0; i < 5; i++) {
+    int now = ch->at(i, 0);
+    ASSERT_LT(p, now);  // p < now
+  }
+}
+
+TEST(ND_ARRAY_TEST, MASK_AND_CHOICE) {
+  auto mask = make_ndarray_ptr<bool, 10>();
+  mask->random_mask<5>();
+
+  auto ptr = make_ndarray_ptr<float, 10, 2>();
+  ptr->each([](float& v, int i) { v = i + 1; });
+
+  auto ch = ptr->choice<5>(*mask);
+  int p = 0;
+  for (int i = 0; i < 5; i++) {
+    int now = ch->at(i, 0);
+    ASSERT_LT(p, now);  // p < now
+  }
+}
+
+TEST(ND_ARRAY_TEST, GET_DIM) {
+  constexpr int k = ndarray<float, 3, 3, 3>::GetDim<0>::value;
+  ASSERT_EQ(3, k);
+}
