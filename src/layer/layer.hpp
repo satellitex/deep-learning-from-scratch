@@ -21,13 +21,14 @@ namespace dpl {
         else
           ret->linerAt(i) = 0;
       }
+      mask = ret;
       return std::move(ret);
     }
 
     ndarrayPtr<Type, Dims...> backward(const ndarrayPtr<Type, Dims...>& dout) {
       auto ret = make_ndarray_ptr<Type, Dims...>();
       for (int i = 0; i < dout->size(); i++)
-        ret->linerAt(i) = dout->linerAt(i) > 0 ? 1 : 0;
+        ret->linerAt(i) = mask->linerAt(i) > 0 ? dout->linerAt(i) : 0;
       return std::move(ret);
     }
 
@@ -35,6 +36,8 @@ namespace dpl {
 
     template <class Func>
     void update(Func optimize) {}
+
+    ndarrayPtr<float, Dims...> mask;
   };
 
   template <typename Type, int... Dims>
@@ -63,11 +66,12 @@ namespace dpl {
       w = *w * (Type)sqrt(2.0 / N);
       b->fill(0);
     }
+
     ndarrayPtr<Type, N, K> forward(const ndarrayPtr<Type, N, Dims...>& input) {
       x = input->template reshape<N, M::value>();
       ndarrayPtr<Type, N, K> ret = dot(*x, *w);
       for (int i = 0; i < N; i++)
-        for (int j = 0; j < K; j++) ret->at(i, j) = ret->at(i, j) + b->at(j);
+        ret->at(i) = *(ret->at(i) + *b);
       return std::move(ret);
     }
 

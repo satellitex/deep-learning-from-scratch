@@ -81,8 +81,6 @@ namespace dpl {
         train_acc_list_.emplace_back(train_acc);
         test_acc_list_.emplace_back(test_acc);
 
-        std::cout << "===================::Network::===================" << std::endl;
-        std::cout << *network_ << std::endl;
         std::cout << "==== epoch: " << current_epoch_
                   << ", train acc: " << train_acc << ", test acc : " << test_acc
                   << "====" << std::endl;

@@ -77,7 +77,7 @@ TEST(TRSINER_TEST, XOR) {
   auto trainer = Trainer<BATCH_NUM, 4, decltype(network), decltype(optimizer),
                          decltype(x_train), decltype(x_label),
                          decltype(t_train), decltype(t_label)>(
-      network, optimizer, x_train, x_label, t_train, t_label, 50);
+      network, optimizer, x_train, x_label, t_train, t_label, 500);
 
   trainer.train();
 }

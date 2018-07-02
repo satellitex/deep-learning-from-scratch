@@ -49,9 +49,6 @@ namespace dpl {
         }
         ndarrayPtr<float, BATCH_SIZE, M> y = predict(tx);
         ndarrayPtr<unsigned, BATCH_SIZE> yy = y->template argmax<1>();
-        std::cout << *tx << std::endl;
-        std::cout << *y << std::endl;
-        std::cout << *tt << std::endl;
         for (int n = 0; n < BATCH_SIZE; n++) {
           if (yy->at(n) == tt->at(n)) acc += 1.0;
         }
