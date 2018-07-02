@@ -5,7 +5,7 @@ set(CMAKE_CXX_FLAGS "-std=c++1z -Wall")
 set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0 -pg")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -s -DNDEBUG -march=native")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g3 -Og -pg")
-set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -s -DNDEBUG -march=native")
+set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -DNDEBUG -march=native")
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/findpackage)
 set(EP_PREFIX "${PROJECT_SOURCE_DIR}/external")

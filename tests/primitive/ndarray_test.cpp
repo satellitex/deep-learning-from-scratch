@@ -706,9 +706,21 @@ TEST(ND_ARRAY_TEST, SOFT_MAX_1DIM) {
   auto b = softmax(a);
 
   auto maxi = a.max();
+  float sumi = 0;
   for (int i = 0; i < 100; i++) {
-    ASSERT_FLOAT_EQ(std::exp(a.at(i) - maxi), b->linerAt(i));
+    sumi += std::exp(a.at(i) - maxi);
   }
+  for (int i = 0; i < 100; i++) {
+    ASSERT_FLOAT_EQ(std::exp(a.at(i) - maxi) / sumi, b->linerAt(i));
+  }
+}
+
+TEST(ND_ARRAY_TEST, SOFT_MAX_1DIM_1) {
+  ndarray<float, 2> a;
+  a << (float)-0.65, (float)0.65;
+  auto b = softmax(a);
+  ASSERT_FLOAT_EQ((float)0.21416502, b->at(0));
+  ASSERT_FLOAT_EQ((float)0.78583498, b->at(1));
 }
 
 TEST(ND_ARRAY_TEST, SOFT_MAX_2DIM) {
@@ -721,12 +733,21 @@ TEST(ND_ARRAY_TEST, SOFT_MAX_2DIM) {
   }
 }
 
+TEST(ND_ARRAY_TEST, SOFT_MAX_2DIM_1) {
+  ndarray<float, 1, 2> x;
+  x << -0.65, 0.65;
+  auto y = softmax(x);
+  ASSERT_FLOAT_EQ((float)0.21416502, y->at(0, 0));
+  ASSERT_FLOAT_EQ((float)0.78583498, y->at(0, 1));
+}
+
 TEST(ND_ARRAY_TEST, CROSS_ENTROPY_ERROR) {
   ndarray<float, 5, 100> x;
   ndarray<float, 5, 100> t;
   x.rand();
   t.rand();
   float e = cross_entropy_error(x, t);
+  ASSERT_LT((float)0.0, e);
 }
 
 TEST(ND_ARRAY_TEST, NDARRAY_PTR) {

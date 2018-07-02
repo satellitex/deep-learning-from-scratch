@@ -59,7 +59,6 @@ namespace dpl {
       float loss = network_->loss(x_batch, t_batch);
       std::vector<float> train_loss_list;
       train_loss_list.emplace_back(loss);
-
       std::cout << "train loss : " << loss << std::endl;
 
       if (current_iter_ % iter_per_epoch_ == 0) {

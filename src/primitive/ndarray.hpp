@@ -112,6 +112,14 @@ namespace dpl {
       return maxi;
     }
 
+    Type sum() const {
+      Type sumi = 0;
+      for (int i = 0; i < size(); i++) {
+        sumi += at(i);
+      }
+      return sumi;
+    }
+
     constexpr size_t size() const { return First; }
     constexpr auto shape() const { return std::make_tuple(First); }
     template <int... NArgs>
@@ -803,24 +811,27 @@ namespace dpl {
 
   template <typename Type, int... Ints>
   ndarrayPtr<Type, Ints...> softmax(const ndarray<Type, Ints...>& x) {
-    return std::move(exp(*(x - x.max())));
+    auto exp_x = exp(*(x - x.max()));
+    return std::move(*exp_x / exp_x->sum());
   }
 
   template <typename Type, int First, int Second>
   ndarrayPtr<Type, First, Second> softmax(
       const ndarray<Type, First, Second>& x) {
     ndarrayPtr<Type, Second, First> xt = x.T();
-    ndarrayPtr<Type, Second> xm = x.template max<0>();
-    for (int i = 0; i < Second; i++) {
-      xt->at(i) = *(xt->at(i) - xm->at(i));
+    ndarrayPtr<Type, First> xm = xt->template max<0>();
+    auto xx = make_ndarray_ptr<Type, First, Second>();
+    for (int i = 0; i < First; i++) {
+      xx->at(i) = *(x.at(i) - xm->at(i));
     }
-    ndarrayPtr<Type, Second, First> exp_x = exp(*xt);
-    ndarrayPtr<Type, First> sum_exp_x = exp_x->template sum<0>();
-    auto ret = make_ndarray_ptr<Type, Second, First>();
-    for (int i = 0; i < Second; i++) {
-      ret->at(i) = *(exp_x->at(i) / *sum_exp_x);
+    ndarrayPtr<Type, First, Second> exp_x = exp(*xx);
+
+    ndarrayPtr<Type, First> sum_exp_x = exp_x->template sum<1>();
+    auto ret = make_ndarray_ptr<Type, First, Second>();
+    for (int i = 0; i < First; i++) {
+      ret->at(i) = *(exp_x->at(i) / sum_exp_x->at(i));
     }
-    return std::move(ret->T());
+    return std::move(ret);
   }
 
   template <typename Type, int N, int M>

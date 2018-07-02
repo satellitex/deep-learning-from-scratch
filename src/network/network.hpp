@@ -150,7 +150,6 @@ namespace dpl {
   template <class First, class... Layers>
   std::ostream& operator<<(std::ostream& os,
                            const Network<First, Layers...>& network_) {
-    os << "===================::Network::===================" << std::endl;
     os << network_.getLayer() << network_.next();
     return os;
   }
