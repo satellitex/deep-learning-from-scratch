@@ -100,6 +100,7 @@ namespace dpl {
     os << "======== Affine Layer ========" << std::endl;
     os << "Args : " << N << ", " << K << ", "
        << ndarray<int, sizeof...(Dims)>({Dims...}) << std::endl;
+    os << "x : " << *(layer.x) << std::endl;
     os << "w : " << *(layer.w) << std::endl;
     os << "dw: " << *(layer.dw) << std::endl;
     os << "b : " << *(layer.b) << std::endl;
@@ -336,7 +337,6 @@ namespace dpl {
     template <class Func>
     void update(Func optimize) {}
 
-   private:
     ndarrayPtr<Type, N, M> y;
     ndarrayPtr<Type, N, M> t;
   };
@@ -346,6 +346,8 @@ namespace dpl {
                            const SoftmaxWithLoss<Type, N, M>& layer) {
     os << "======== SoftmaxWithLoss Layer ========" << std::endl;
     os << "Args : " << N << ", " << M << std::endl;
+    os << "y : " << *(layer.y) << std::endl;
+    os << "t : " << *(layer.t) << std::endl;
     return os;
   }
 

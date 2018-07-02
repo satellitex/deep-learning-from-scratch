@@ -49,6 +49,9 @@ namespace dpl {
         }
         ndarrayPtr<float, BATCH_SIZE, M> y = predict(tx);
         ndarrayPtr<unsigned, BATCH_SIZE> yy = y->template argmax<1>();
+        std::cout << *tx << std::endl;
+        std::cout << *y << std::endl;
+        std::cout << *tt << std::endl;
         for (int n = 0; n < BATCH_SIZE; n++) {
           if (yy->at(n) == tt->at(n)) acc += 1.0;
         }
@@ -150,7 +153,6 @@ namespace dpl {
   template <class First, class... Layers>
   std::ostream& operator<<(std::ostream& os,
                            const Network<First, Layers...>& network_) {
-    os << "===================::Network::===================" << std::endl;
     os << network_.getLayer() << network_.next();
     return os;
   }
