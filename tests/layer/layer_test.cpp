@@ -23,7 +23,7 @@ TEST(LAYER_TEST, RELU) {
 
   auto dx = relu.backward(out);
   for (int i = 0; i < dx->size(); i++) {
-    ASSERT_FLOAT_EQ(out->linerAt(i) > 0.0 ? 1 : 0, dx->linerAt(i));
+    ASSERT_FLOAT_EQ(in->linerAt(i) > 0.0 ? out->linerAt(i) : 0, dx->linerAt(i));
   }
 }
 
