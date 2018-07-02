@@ -19,7 +19,7 @@ namespace dpl {
   class Loader {};
 
   class MNISTLoader {
-   private:
+   public:
     static constexpr int TRAIN_NUM = 60000;
     static constexpr int TEST_NUM = 10000;
     static constexpr int IMAGE_C = 1;
@@ -27,6 +27,7 @@ namespace dpl {
     static constexpr int IMAGE_W = 28;
     static constexpr int IMAGE_SIZE = 784;
 
+   private:
     void download_(std::string file) {
       struct stat st;
       if (!stat(file.c_str(), &st)) {
@@ -154,20 +155,20 @@ namespace dpl {
     }
 
     const ndarrayPtr<float, TRAIN_NUM, IMAGE_C, IMAGE_H, IMAGE_W>
-        &getTrainImage() {
-      return std::move(train_img);
+    getTrainImage() {
+      return train_img;
     };
 
     const ndarrayPtr<float, TEST_NUM, IMAGE_C, IMAGE_H, IMAGE_W>
-        &getTestImage() {
-      return std::move(test_img);
+    getTestImage() {
+      return test_img;
     };
 
-    const ndarrayPtr<float, TRAIN_NUM, 10> &getTrainLabel() {
-      return std::move(train_one_hot_label);
+    const ndarrayPtr<float, TRAIN_NUM, 10> getTrainLabel() {
+      return train_one_hot_label;
     };
     const ndarrayPtr<float, TEST_NUM, 10> &getTestLabel() {
-      return std::move(test_one_hot_label);
+      return test_one_hot_label;
     };
 
    private:

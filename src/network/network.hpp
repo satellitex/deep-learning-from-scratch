@@ -161,7 +161,7 @@ namespace dpl {
   }
 
   template <class... Layers>
-  using NetworkPtr = std::unique_ptr<Network<Layers...>>;
+  using NetworkPtr = std::shared_ptr<Network<Layers...>>;
 
 };  // namespace dpl
 

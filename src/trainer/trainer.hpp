@@ -31,12 +31,12 @@ namespace dpl {
             ndarrayPtr<float, TestInputArgs...> x_test,
             ndarrayPtr<float, TestLabelArgs...> t_test, int epochs)
         : epochs_(epochs) {
-      network_ = std::move(network);
-      x_train_ = std::move(x_train);
-      t_train_ = std::move(t_train);
+      network_ = network;
+      x_train_ = x_train;
+      t_train_ = t_train;
 
-      x_test_ = std::move(x_test);
-      t_test_ = std::move(t_test);
+      x_test_ = x_test;
+      t_test_ = t_test;
 
       iter_per_epoch_ =
           std::max(Get<0, TrainInputArgs...>::value / BATCH_SIZE, 1);

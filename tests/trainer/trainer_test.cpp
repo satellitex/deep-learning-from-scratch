@@ -43,8 +43,7 @@ TEST(TRAINER_TEST, TRAIN) {
 
   auto trainer = Trainer<BATCH_NUM, 2, decltype(network), decltype(optimizer),
                          decltype(x_train), decltype(x_test), decltype(t_train),
-                         decltype(t_test)>(
-      std::move(network), optimizer, std::move(x_train), std::move(x_test),
-      std::move(t_train), std::move(t_test), 2);
+                         decltype(t_test)>(network, optimizer, x_train, x_test,
+                                           t_train, t_test, 2);
   trainer.train();
 }
