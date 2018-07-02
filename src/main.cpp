@@ -61,4 +61,5 @@ int main() {
               decltype(t_label)>(network, optimizer, x_train, x_label, t_train,
                                  t_label, 20);
   trainer.train();
+  std::cout << *network << std::endl;
 }
