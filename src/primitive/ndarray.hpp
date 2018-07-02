@@ -68,11 +68,11 @@ namespace dpl {
   class ndarray;
 
   template <typename Type, int... Args>
-  using ndarrayPtr = std::unique_ptr<ndarray<Type, Args...>>;
+  using ndarrayPtr = std::shared_ptr<ndarray<Type, Args...>>;
 
   template <class Type, int... Args>
   ndarrayPtr<Type, Args...> make_ndarray_ptr() {
-    return std::move(std::make_unique<ndarray<Type, Args...>>());
+    return std::move(std::make_shared<ndarray<Type, Args...>>());
   };
 
   template <typename Type>
@@ -156,7 +156,7 @@ namespace dpl {
       int cnt = First;
       while (--cnt) {
         auto ch_score =
-            std::make_unique<std::uniform_int_distribution<int>>(0, cnt);
+            std::make_shared<std::uniform_int_distribution<int>>(0, cnt);
         int k = (*ch_score)(*mt);
         std::swap(at(k), at(cnt));
       }
@@ -390,12 +390,12 @@ namespace dpl {
     // e.g 1) ndarray<3,4,5>.transpose<2,1,0>() -> ndarrayPtr<5,4,3>
     // e.g 2) ndarray<5,6,7>.transpose<1,0,2>() -> ndarrayPtr<6,5,7>
     template <int... NArgs>
-    std::unique_ptr<typename GetTransposedArray<NArgs...>::type> transpose()
+    std::shared_ptr<typename GetTransposedArray<NArgs...>::type> transpose()
         const {
       static_assert(sizeof...(NArgs) == sizeof...(Args) + 2,
                     "Transpose don't match number of arguments.");
       auto ret =
-          std::make_unique<typename GetTransposedArray<NArgs...>::type>();
+          std::make_shared<typename GetTransposedArray<NArgs...>::type>();
       make_transpose_<NArgs...>(*ret, 0);
       return std::move(ret);
     }
@@ -417,10 +417,10 @@ namespace dpl {
 
    public:
     // reverse transpose
-    std::unique_ptr<
+    std::shared_ptr<
         typename GetReversedTransposedArray<sizeof...(Args) + 2>::type>
     T() const {
-      auto ret = std::make_unique<
+      auto ret = std::make_shared<
           typename GetReversedTransposedArray<sizeof...(Args) + 2>::type>();
       make_reverse_transpose_<sizeof...(Args) + 2>(*ret, 0);
       return std::move(ret);
@@ -428,14 +428,14 @@ namespace dpl {
 
     // argmax, axis = I
     template <int I>
-    std::unique_ptr<
+    std::shared_ptr<
         typename GetDecreaseDimArray<unsigned, I, First, Second, Args...>::type>
     argmax() const {
-      auto ret = std::make_unique<typename GetDecreaseDimArray<
+      auto ret = std::make_shared<typename GetDecreaseDimArray<
           unsigned, I, First, Second, Args...>::type>();
       const int jk = size() / GetFact<I, First, Second, Args...>::value;
       const int f = Get<I, First, Second, Args...>::value;
-      auto fl = std::make_unique<std::bitset<
+      auto fl = std::make_shared<std::bitset<
           GetFact<sizeof...(Args) + 1, First, Second, Args...>::value>>();
       (*fl) = 0;
       for (int i = 0, id = 0; i < ret->size(); i++) {
@@ -452,15 +452,15 @@ namespace dpl {
 
     // max, axis = I
     template <int I>
-    std::unique_ptr<
+    std::shared_ptr<
         typename GetDecreaseDimArray<Type, I, First, Second, Args...>::type>
     max() const {
       auto ret =
-          std::make_unique<typename GetDecreaseDimArray<Type, I, First, Second,
+          std::make_shared<typename GetDecreaseDimArray<Type, I, First, Second,
                                                         Args...>::type>();
       const int jk = size() / GetFact<I, First, Second, Args...>::value;
       const int f = Get<I, First, Second, Args...>::value;
-      auto fl = std::make_unique<std::bitset<
+      auto fl = std::make_shared<std::bitset<
           GetFact<sizeof...(Args) + 1, First, Second, Args...>::value>>();
       (*fl) = 0;
       for (int i = 0, id = 0; i < ret->size(); i++) {
@@ -486,11 +486,11 @@ namespace dpl {
     template <int I>
     auto sum() const {
       auto ret =
-          std::make_unique<typename GetDecreaseDimArray<Type, I, First, Second,
+          std::make_shared<typename GetDecreaseDimArray<Type, I, First, Second,
                                                         Args...>::type>();
       const int jk = size() / GetFact<I, First, Second, Args...>::value;
       const int f = Get<I, First, Second, Args...>::value;
-      auto fl = std::make_unique<std::bitset<
+      auto fl = std::make_shared<std::bitset<
           GetFact<sizeof...(Args) + 1, First, Second, Args...>::value>>();
       (*fl) = 0;
       for (int i = 0, id = 0; i < ret->size(); i++) {
@@ -509,7 +509,7 @@ namespace dpl {
     auto slice() const {
       static_assert(ST > 0, "ST must be ST > 0");
       auto ret =
-          std::make_unique<typename GetSlicedArray<I, (E - S) / ST, First,
+          std::make_shared<typename GetSlicedArray<I, (E - S) / ST, First,
                                                    Second, Args...>::type>();
       const int jk = size() / GetFact<I, First, Second, Args...>::value;
       const int f = Get<I, First, Second, Args...>::value;
@@ -615,7 +615,7 @@ namespace dpl {
 
     template <int I, int PAD_L, int PAD_R>
     auto pad() const {
-      auto ret = std::make_unique<typename GetReshapedByIndexArray<
+      auto ret = std::make_shared<typename GetReshapedByIndexArray<
           I, PAD_L + PAD_R, First, Second, Args...>::type>();
       ret->fill(0);
 

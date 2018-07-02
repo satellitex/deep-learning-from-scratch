@@ -155,20 +155,20 @@ namespace dpl {
     }
 
     const ndarrayPtr<float, TRAIN_NUM, IMAGE_C, IMAGE_H, IMAGE_W>
-        &getTrainImage() {
-      return std::move(train_img);
+    getTrainImage() {
+      return train_img;
     };
 
     const ndarrayPtr<float, TEST_NUM, IMAGE_C, IMAGE_H, IMAGE_W>
-        &getTestImage() {
-      return std::move(test_img);
+    getTestImage() {
+      return test_img;
     };
 
-    const ndarrayPtr<float, TRAIN_NUM, 10> &getTrainLabel() {
-      return std::move(train_one_hot_label);
+    const ndarrayPtr<float, TRAIN_NUM, 10> getTrainLabel() {
+      return train_one_hot_label;
     };
     const ndarrayPtr<float, TEST_NUM, 10> &getTestLabel() {
-      return std::move(test_one_hot_label);
+      return test_one_hot_label;
     };
 
    private:

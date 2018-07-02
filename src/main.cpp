@@ -25,10 +25,10 @@ int main() {
 
   MNISTLoader mnistLoader;
   mnistLoader.load();
-  auto& t_train = mnistLoader.getTestImage();
-  auto& x_train = mnistLoader.getTrainImage();
-  auto& t_label = mnistLoader.getTestLabel();
-  auto& x_label = mnistLoader.getTrainLabel();
+  auto t_train = mnistLoader.getTestImage();
+  auto x_train = mnistLoader.getTrainImage();
+  auto t_label = mnistLoader.getTestLabel();
+  auto x_label = mnistLoader.getTrainLabel();
 
   auto network = NetworkBuilder<BATCH_NUM>::Input<C, H, W>()
                      .Convolution<16, 3, 3, 1, 1>()
@@ -55,10 +55,10 @@ int main() {
                      .buildPtr();
   auto optimizer = SGD(0.001);
 
-  auto trainer = Trainer<BATCH_NUM, 1000, decltype(network),
-                         decltype(optimizer), decltype(x_train),
-                         decltype(x_label), decltype(t_train), decltype(t_label)>(
-      std::move(network), optimizer, std::move(x_train), std::move(x_label),
-      std::move(t_train), std::move(t_label), 20);
+  auto trainer =
+      Trainer<BATCH_NUM, 1000, decltype(network), decltype(optimizer),
+              decltype(x_train), decltype(x_label), decltype(t_train),
+              decltype(t_label)>(network, optimizer, x_train, x_label, t_train,
+                                 t_label, 20);
   trainer.train();
 }

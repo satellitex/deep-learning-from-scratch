@@ -219,10 +219,10 @@ namespace dpl {
     /**
      * Build Network
      *
-     * @return std::unique_ptr<NetworkBuild> including Layers.
+     * @return std::shared_ptr<NetworkBuild> including Layers.
      */
     auto buildPtr() {
-      auto network = std::make_unique<typename NetworkBuild<Last, Layers...>::type>();
+      auto network = std::make_shared<typename NetworkBuild<Last, Layers...>::type>();
       if (!dropout_ratio_list.empty()) {
         reverse(dropout_ratio_list.begin(), dropout_ratio_list.end());
         network->set_dropout_ratio_(dropout_ratio_list.begin(),
