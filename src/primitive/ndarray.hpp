@@ -158,7 +158,7 @@ namespace dpl {
 
     template <int R>
     ndarray<Type, First>& random_mask() {
-      static_assert(0 < R && R < First,
+      static_assert(0 < R && R <= First,
                     "ndarray<Type,First>.choice<R> : 0 < R < First dimention");
       each([](Type& v, int i) { v = (i < R ? 1 : 0); });
       int cnt = First;
@@ -667,7 +667,7 @@ namespace dpl {
 
     template <int R>
     ndarrayPtr<Type, R, Second, Args...> random_choice() {
-      static_assert(0 < R && R < First,
+      static_assert(0 < R && R <= First,
                     "ndarray<Type,First, Args...>.random_choice<R> : 0 < R < "
                     "First dimention");
       auto mask = make_ndarray_ptr<bool, First>();
