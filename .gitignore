@@ -25,3 +25,6 @@ external/
 # tmp
 tmp/
 a.out
+
+# sample-code
+deep-learning-sample-code/
