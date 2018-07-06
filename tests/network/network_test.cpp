@@ -36,7 +36,7 @@ TEST(NETWORK_TEST, PRDICT_LOSS) {
   teacher->at(1).at(9) = 1;
 
   ndarrayPtr<float, 2, 10> ret = network.predict(input);
-  float v = network.loss(input, teacher);
+  network.loss(input, teacher);
 }
 
 TEST(NETWORK_TEST, ACCURACY) {
@@ -62,7 +62,7 @@ TEST(NETWORK_TEST, ACCURACY) {
   teacher->at(0).at(0) = 1;
   teacher->at(1).at(9) = 1;
 
-  float v = network.accuracy<1>(input, teacher);
+  network.accuracy<1>(input, teacher);
 }
 
 TEST(NETWORK_TEST, GRADIENT) {

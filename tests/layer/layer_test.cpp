@@ -73,6 +73,6 @@ TEST(LAYER_TEST, SOFT_MAX) {
 
   auto input = make_ndarray_ptr<float, 2, 10>();
   auto teacher = make_ndarray_ptr<float, 2, 10>();
-  float loss = last_layer.forward(input, teacher);
+  last_layer.forward(input, teacher);
   ndarrayPtr<float, 2, 10> dx = last_layer.backward();
 }

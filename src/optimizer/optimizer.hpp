@@ -17,7 +17,8 @@ namespace dpl {
     void update(Network<First, Layers...>& network) {
       network.getLayer().update(
           [this](auto& a, auto& b) { *a = *(*a - *(*b * lr)); });
-      update(network.next());
+      auto nextNetwork = network.next();
+      update(nextNetwork);
     }
 
     void update(Network<>& network) {

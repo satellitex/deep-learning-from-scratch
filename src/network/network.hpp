@@ -134,11 +134,11 @@ namespace dpl {
 
     SoftmaxWithLoss<float, N, M>& getLayer() { return layer; }
     const SoftmaxWithLoss<float, N, M>& getLayer() const { return layer; }
-    Network<>& next() {
+    Network<> next() {
       auto ret = Network<>();
       return ret;
     }
-    const Network<>& next() const {
+    const Network<> next() const {
       auto ret = Network<>();
       return ret;
     }
