@@ -19,7 +19,6 @@ int main() {
   constexpr int C = 1;
   constexpr int H = 28;
   constexpr int W = 28;
-  constexpr int M = 10;
 
   std::cout << "sample :: deep learning lib" << std::endl;
 

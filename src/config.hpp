@@ -11,7 +11,7 @@
 
 #ifndef MNIST_CONFIG_URL_BASE
 #define MNIST_CONFIG_URL_BASE "http://yann.lecun.com/exdb/mnist/"
-#endif MNIST_CONFIG_URL_BASE
+#endif // MNIST_CONFIG_URL_BASE
 
 #ifndef MNIST_CONFIG_TRAIN_IMAGES
 #define MNIST_CONFIG_TRAIN_IMAGES "train-images-idx3-ubyte"
@@ -19,7 +19,7 @@
 
 #ifndef MNIST_CONFIG_TRAIN_LABELS
 #define MNIST_CONFIG_TRAIN_LABELS "train-labels-idx1-ubyte"
-#endif MNIST_CONFIG_TRAIN_LABELS
+#endif // MNIST_CONFIG_TRAIN_LABELS
 
 #ifndef MNIST_CONFIG_TEST_IMAGES
 #define MNIST_CONFIG_TEST_IMAGES "t10k-images-idx3-ubyte"

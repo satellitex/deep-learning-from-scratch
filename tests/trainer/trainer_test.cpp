@@ -50,7 +50,6 @@ TEST(TRAINER_TEST, TRAIN) {
 
 TEST(TRSINER_TEST, XOR) {
   constexpr int TRAIN_NUM = 4;
-  constexpr int TEACH_NUM = 4;
   constexpr int BATCH_NUM = 1;
   constexpr int N = 2;
   constexpr int M = 2;
